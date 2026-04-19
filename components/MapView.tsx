@@ -25,7 +25,7 @@ const AutoZoomController = ({ bounds }: { bounds: { x: number, y: number, w: num
     <div 
       id="route-boundingBox" 
       className="absolute pointer-events-none opacity-0" 
-      style={{ left: bounds.x - 40, top: bounds.y - 40, width: bounds.w + 80, height: bounds.h + 80 }}
+      style={{ left: bounds.x, top: bounds.y-10, width: bounds.w, height: bounds.h }}
     />
   );
 };
@@ -37,8 +37,10 @@ const MapMarkers = ({ finalRenderPois, selectedPOI, setSelectedPOI, isExpanded }
   // Calculate a visual scale target:
   // 1倍左右（全局鸟瞰）缩小视觉占比（~0.7），防重叠
   // 极限放大到20倍时增大视觉占比（~1.2），保清晰度
-  const targetVisualScale = Math.max(0.6, Math.min(1.2, 0.7 * Math.pow(scale, 0.2)));
+  //const targetVisualScale = Math.max(0.6, Math.min(1.5, 0.7 * Math.pow(scale, 0.2)));
+  const targetVisualScale = 0.7; // 锁定视觉倍率
   const dynamicScale = targetVisualScale / scale;
+
 
   return (
     <>
@@ -88,7 +90,7 @@ const MapMarkers = ({ finalRenderPois, selectedPOI, setSelectedPOI, isExpanded }
               </span>
               <div className={`w-5 h-5 rounded-full flex items-center justify-center text-white transition-colors shadow-md border-2 border-white
                 ${selectedPOI?.id === poi.id ? 'bg-brand scale-125' : `${mapPinColor} hover:bg-brand`}`}>
-                <MapPin size={10} strokeWidth={2.5} />
+                <MapPin size={10} strokeWidth={2} />
               </div>
             </div>
           </div>
@@ -242,12 +244,12 @@ export default function MapView({
       )}
 
       <TransformWrapper 
-         initialScale={1}
+         initialScale={5}
          minScale={1.5}
-         maxScale={35}
+         maxScale={50}
          centerOnInit={false}
          wheel={{ step: 1 }}
-         zoomAnimation={{ animationType: "easeOut", animationTime: 300 }}
+         zoomAnimation={{ animationType: "easeOut", animationTime: 350 }}
       >
         <TransformComponent wrapperStyle={{ width: '100%', height: '100%' }}>
           <AutoZoomController bounds={routeBounds} />
@@ -293,11 +295,11 @@ export default function MapView({
       <AnimatePresence>
         {selectedPOI && (
           <motion.div 
-            initial={{ opacity: 0, y: 10, scale: 0.95 }}
+            initial={{ opacity: 0, y: 5, scale: 1.5 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.95 }}
+            exit={{ opacity: 0, y: 5, scale: 1.5 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="absolute bottom-[110px] left-4 right-4 md:left-auto md:right-4 md:bottom-auto md:top-4 md:w-80 bg-white rounded-xl shadow-2xl overflow-hidden z-50 border border-gray-100"
+            className="absolute bottom-[160px] left-4 right-4 md:left-auto md:right-4 md:bottom-auto md:top-4 md:w-80 bg-white rounded-xl shadow-2xl overflow-hidden z-50 border border-gray-100"
           >
             {selectedPOI.images && selectedPOI.images.length > 0 && (
               <div className="relative w-full h-32 bg-gray-200">
@@ -339,7 +341,7 @@ export default function MapView({
             <div className={`p-4 ${!(selectedPOI.images && selectedPOI.images.length > 0) ? 'pt-8' : ''}`}>
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center gap-2 overflow-hidden">
-                  <h3 className="font-bold text-lg text-gray-900 leading-tight truncate">{selectedPOI.title}</h3>
+                  <h3 className="font-bold text-base text-gray-900 leading-tight truncate">{selectedPOI.title}</h3>
                   {selectedPOI.altitude > 0 && (
                     <span className="text-[10px] font-semibold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded flex-shrink-0">
                       {selectedPOI.altitude}m
@@ -347,7 +349,7 @@ export default function MapView({
                   )}
                 </div>
                 {selectedPOI.liveUpdate && (
-                  <span className="text-[10px] text-gray-400 font-medium ml-2 flex-shrink-0">
+                  <span className="text-[10px] text-white font-medium ml-2 flex-shrink-0">
                     {new Date(selectedPOI.liveUpdate).toLocaleDateString()}
                   </span>
                 )}

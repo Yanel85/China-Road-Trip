@@ -12,7 +12,7 @@ export default function POICard({ data }: { data: POIData }) {
           <div className="w-full h-full bg-gray-200" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent"></div>
-        <h1 className="absolute bottom-6 left-6 text-3xl font-bold text-gray-900 drop-shadow-sm">
+        <h1 className="absolute bottom-6 left-6 text-2xl font-bold text-gray-900 drop-shadow-sm">
           {data.title}
         </h1>
       </div>

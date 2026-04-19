@@ -5,8 +5,8 @@ import './globals.css';
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "探索中心 | 户外行",
-  description: "移动端户外路线探索平台",
+  title: "自驾路 | 探索中心",
+  description: "中国公路旅行探索中心",
 };
 
 export default function RootLayout({

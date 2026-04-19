@@ -12,19 +12,8 @@ let routesCache: CacheEntry<RouteData[]> | null = null;
 let poisCache: Record<string, CacheEntry<POIData[]>> = {};
 
 const notionToken = process.env.NOTION_TOKEN;
-
-// Get database IDs and extract proper 32 character ID if URL was passed
-function cleanId(id?: string) {
-  if (!id) return undefined;
-  if (id.includes("notion.so/")) {
-    const match = id.match(/([a-fA-F0-9]{32})/);
-    if (match) return match[1];
-  }
-  return id.replace(/-/g, '');
-}
-
-const databaseId = cleanId(process.env.NOTION_DATABASE_ID);
-const poiDatabaseId = cleanId(process.env.NOTION_POI_DATABASE_ID);
+const databaseId = process.env.NOTION_DATABASE_ID;
+const poiDatabaseId = process.env.NOTION_POI_DATABASE_ID;
 
 const notion = new Client({ 
   auth: notionToken,

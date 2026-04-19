@@ -7,7 +7,6 @@
 
 这是一个基于 **Next.js 14 (App Router)** 和 **Notion API** 构建的现代化公路旅行路线探索平台。项目采用“无头 CMS (Headless CMS)”架构，将 Notion 作为内容管理后台，前端通过 Tailwind CSS 和 Framer Motion 呈现出极具沉浸感的“现代户外风”视觉与交互体验。
 
-[👉 查看在线演示 (Live Demo) ](#) <!-- 请在这里替换为你的 Vercel 部署链接 -->
 
 ## ✨ 核心特性 (Features)
 
