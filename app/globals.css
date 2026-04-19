@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+@theme {
+  --color-background: #F8F9FA;
+  --color-card: #FFFFFF;
+  --color-success: #27AE60;
+  --color-warning: #F1C40F;
+  --color-danger: #E74C3C;
+  --color-brand: #2C3E50;
+  
+  --radius-20: 20px;
+  
+  --shadow-card: 0 4px 20px rgba(0,0,0,0.05);
+  --shadow-sheet: 0 -4px 20px rgba(0,0,0,0.05);
+}
+
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+  }
+  
+  .custom-scrollbar {
+    overflow-y: overlay;
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 5px;
+    background-color: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background-color: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background-color: transparent;
+    border-radius: 10px;
+  }
+  .custom-scrollbar:hover::-webkit-scrollbar-thumb,
+  .custom-scrollbar:active::-webkit-scrollbar-thumb,
+  .custom-scrollbar:focus-within::-webkit-scrollbar-thumb {
+    background-color: rgba(156, 163, 175, 0.6);
+  }
+  .custom-scrollbar:hover {
+    scrollbar-color: rgba(156, 163, 175, 0.6) transparent;
+  }
+  
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+}
