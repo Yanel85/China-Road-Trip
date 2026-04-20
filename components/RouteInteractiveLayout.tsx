@@ -4,8 +4,28 @@ import { useState } from "react";
 import Link from "next/link";
 import { ChevronLeft, ArrowDown, ArrowUp } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
-import MapView from "@/components/MapView";
-import AltitudeChart from "@/components/AltitudeChart";
+import dynamic from "next/dynamic";
+
+const MapView = dynamic(() => import("@/components/MapView"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-full bg-[#cbd5e1] flex items-center justify-center">
+      <div className="flex flex-col items-center">
+        <div className="w-8 h-8 border-4 border-white border-t-brand rounded-full animate-spin"></div>
+        <span className="text-white font-medium mt-4 text-sm drop-shadow-md">载入地图数据...</span>
+      </div>
+    </div>
+  )
+});
+
+const AltitudeChart = dynamic(() => import("@/components/AltitudeChart"), {
+  ssr: false,
+  loading: () => (
+    <div className="w-full h-[180px] bg-gray-50 animate-pulse rounded-xl flex items-center justify-center mt-3">
+      <span className="text-gray-400 text-xs text-center px-4">海拔图表正通过 Recharts 生成...</span>
+    </div>
+  )
+});
 
 export default function RouteInteractiveLayout({ route, pois }: { route: any; pois: any[] }) {
   const [isExpanded, setIsExpanded] = useState(true);

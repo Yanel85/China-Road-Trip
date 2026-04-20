@@ -1,10 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { MapPin, Navigation, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
-import { useEffect } from "react";
 import { TransformWrapper, TransformComponent, useControls, useTransformContext } from "react-zoom-pan-pinch";
 import { POIData } from "@/types";
 import { chinaBorderCoords } from "@/lib/chinaPolygonData";
@@ -12,12 +11,17 @@ import { yellowRiverCoords, yangtzeRiverCoords, chinaLakesCoords } from "@/lib/r
 
 const AutoZoomController = ({ bounds }: { bounds: { x: number, y: number, w: number, h: number } }) => {
   const { zoomToElement } = useControls();
+  const prevBoundsRef = useRef<{w: number, h: number} | null>(null);
   
   useEffect(() => {
     if (bounds.w > 0 && bounds.h > 0) { 
-      setTimeout(() => {
-        zoomToElement('route-boundingBox', 0);
-      }, 50);
+      // Only zoom if the bounds have changed
+      if (prevBoundsRef.current?.w !== bounds.w || prevBoundsRef.current?.h !== bounds.h) {
+        setTimeout(() => {
+          zoomToElement('route-boundingBox', 0);
+        }, 50);
+        prevBoundsRef.current = bounds;
+      }
     }
   }, [bounds, zoomToElement]);
   
@@ -25,7 +29,7 @@ const AutoZoomController = ({ bounds }: { bounds: { x: number, y: number, w: num
     <div 
       id="route-boundingBox" 
       className="absolute pointer-events-none opacity-0" 
-      style={{ left: bounds.x, top: bounds.y-10, width: bounds.w, height: bounds.h-4 }}
+      style={{ left: bounds.x, top: bounds.y-30, width: bounds.w, height: bounds.h }}
     />
   );
 };
@@ -35,9 +39,6 @@ const MapMarkers = ({ finalRenderPois, selectedPOI, setSelectedPOI, isExpanded }
   const scale = (context as any)?.transformState?.scale || (context as any)?.state?.scale || 1;
   
   // Calculate a visual scale target:
-  // 1倍左右（全局鸟瞰）缩小视觉占比（~0.7），防重叠
-  // 极限放大到20倍时增大视觉占比（~1.2），保清晰度
-  //const targetVisualScale = Math.max(0.6, Math.min(1.5, 0.7 * Math.pow(scale, 0.2)));
   //const targetVisualScale = 0.7; // 锁定视觉倍率
   const targetVisualScale = Math.max(0.5, Math.min(1.2, 0.35 * Math.pow(scale, 0.336)));
   const dynamicScale = targetVisualScale / scale;
@@ -120,8 +121,8 @@ export default function MapView({
 
   const [selectedType, setSelectedType] = useState<string>('全部');
 
-  const poiTypes = ['全部', ...Array.from(new Set(pois.map(p => p.type).filter(Boolean)))];
-  const filteredPOIs = selectedType === '全部' ? pois : pois.filter(p => p.type === selectedType);
+  const poiTypes = useMemo(() => ['全部', ...Array.from(new Set(pois.map(p => p.type).filter(Boolean)))], [pois]);
+  const filteredPOIs = useMemo(() => selectedType === '全部' ? pois : pois.filter(p => p.type === selectedType), [pois, selectedType]);
 
   // Deselect when clicking the background
   const handleMapClick = (e: React.MouseEvent) => {
@@ -133,7 +134,7 @@ export default function MapView({
   };
 
   // 1. Process coordinates smartly
-  const mappedPois = pois.map(poi => {
+  const mappedPois = useMemo(() => pois.map(poi => {
     let lat = NaN, lng = NaN;
     if (poi.coordinates) {
       const parts = poi.coordinates.split(',');
@@ -147,47 +148,52 @@ export default function MapView({
       }
     }
     return { ...poi, lat, lng, validCoords: (!isNaN(lat) && !isNaN(lng)) };
-  });
+  }), [pois]);
 
-  const validPois = mappedPois.filter(p => p.validCoords);
+  const validPois = useMemo(() => mappedPois.filter(p => p.validCoords), [mappedPois]);
   
   // Use a fixed virtual container representing China
   // Approximate China bounds: Lng 73E - 135E, Lat 18N - 54N
   const canvasW = 1200;
   const canvasH = 860;
   
-  const getPosition = (lat: number, lng: number) => {
+  const getPosition = useMemo(() => (lat: number, lng: number) => {
     const x = ((lng - 73) / 62) * canvasW;
     const y = ((54 - lat) / 36) * canvasH;
     return { x, y };
-  };
+  }, []);
 
-  const sortedValidPois = [...validPois].sort((a, b) => a.sequence - b.sequence);
-  const pathPoints = sortedValidPois.map(p => getPosition(p.lat, p.lng));
+  const pathPoints = useMemo(() => 
+    [...validPois].sort((a, b) => a.sequence - b.sequence).map(p => getPosition(p.lat, p.lng)), 
+    [validPois, getPosition]
+  );
 
-  let routeMinX = Infinity, routeMaxX = -Infinity;
-  let routeMinY = Infinity, routeMaxY = -Infinity;
-  
-  if (pathPoints.length > 0) {
-      pathPoints.forEach(p => {
-          if (p.x < routeMinX) routeMinX = p.x;
-          if (p.x > routeMaxX) routeMaxX = p.x;
-          if (p.y < routeMinY) routeMinY = p.y;
-          if (p.y > routeMaxY) routeMaxY = p.y;
-      });
-  }
-  
-  const routeBounds = {
-    x: routeMinX === Infinity ? 0 : routeMinX,
-    y: routeMinY === Infinity ? 0 : routeMinY,
-    w: routeMinX === Infinity ? 0 : routeMaxX - routeMinX,
-    h: routeMinY === Infinity ? 0 : routeMaxY - routeMinY
-  };
+  const routeBounds = useMemo(() => {
+    let routeMinX = Infinity, routeMaxX = -Infinity;
+    let routeMinY = Infinity, routeMaxY = -Infinity;
+    
+    if (pathPoints.length > 0) {
+        pathPoints.forEach(p => {
+            if (p.x < routeMinX) routeMinX = p.x;
+            if (p.x > routeMaxX) routeMaxX = p.x;
+            if (p.y < routeMinY) routeMinY = p.y;
+            if (p.y > routeMaxY) routeMaxY = p.y;
+        });
+    }
+    
+    return {
+      x: routeMinX === Infinity ? 0 : routeMinX,
+      y: routeMinY === Infinity ? 0 : routeMinY,
+      w: routeMinX === Infinity ? 0 : routeMaxX - routeMinX,
+      h: routeMinY === Infinity ? 0 : routeMaxY - routeMinY
+    };
+  }, [pathPoints]);
 
-  let pathD = "";
-  if (pathPoints.length > 0) {
-    pathD = `M ${pathPoints[0].x} ${pathPoints[0].y}`;
-    for (let i = 0; i < pathPoints.length - 1; i++) {
+  const pathD = useMemo(() => {
+    let d = "";
+    if (pathPoints.length > 0) {
+      d = `M ${pathPoints[0].x} ${pathPoints[0].y}`;
+      for (let i = 0; i < pathPoints.length - 1; i++) {
         const p0 = i === 0 ? pathPoints[0] : pathPoints[i - 1];
         const p1 = pathPoints[i];
         const p2 = pathPoints[i + 1];
@@ -199,26 +205,34 @@ export default function MapView({
         const cp2x = p2.x - (p3.x - p1.x) * k;
         const cp2y = p2.y - (p3.y - p1.y) * k;
         
-        pathD += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+        d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+      }
     }
-  }
+    return d;
+  }, [pathPoints]);
 
-  const finalRenderPois = filteredPOIs.map(poi => {
-    const p = mappedPois.find(mp => mp.id === poi.id);
-    if (p && p.validCoords) return { ...poi, pos: getPosition(p.lat, p.lng) };
-    return { ...poi, pos: { x: -100, y: -100 } };
-  }).filter(p => p.pos.x >= 0);
+  const finalRenderPois = useMemo(() => 
+    filteredPOIs.map(poi => {
+      const p = mappedPois.find(mp => mp.id === poi.id);
+      if (p && p.validCoords) return { ...poi, pos: getPosition(p.lat, p.lng) };
+      return { ...poi, pos: { x: -100, y: -100 } };
+    }).filter(p => p.pos.x >= 0),
+    [filteredPOIs, mappedPois, getPosition]
+  );
 
-  const chinaPolygonPaths = chinaBorderCoords.map(polygon => 
-    polygon.map(([lng, lat]) => `${((lng - 73) / 62) * 1200},${((54 - lat) / 36) * 860}`).join(" ")
+  const chinaPolygonPaths = useMemo(() => 
+    chinaBorderCoords.map(polygon => 
+      polygon.map(([lng, lat]) => `${((lng - 73) / 62) * 1200},${((54 - lat) / 36) * 860}`).join(" ")
+    ),
+    []
   );
 
   // Rivers and Lakes mapping
-  const yellowRiver = yellowRiverCoords.map(([lng, lat]) => `${((lng - 73) / 62) * 1200},${((54 - lat) / 36) * 860}`).join(" ");
-  const yangtzeRiver = yangtzeRiverCoords.map(([lng, lat]) => `${((lng - 73) / 62) * 1200},${((54 - lat) / 36) * 860}`).join(" ");
-  const chinaLakesPaths = chinaLakesCoords.map(lake => 
+  const yellowRiver = useMemo(() => yellowRiverCoords.map(([lng, lat]) => `${((lng - 73) / 62) * 1200},${((54 - lat) / 36) * 860}`).join(" "), []);
+  const yangtzeRiver = useMemo(() => yangtzeRiverCoords.map(([lng, lat]) => `${((lng - 73) / 62) * 1200},${((54 - lat) / 36) * 860}`).join(" "), []);
+  const chinaLakesPaths = useMemo(() => chinaLakesCoords.map(lake => 
     lake.map(([lng, lat]) => `${((lng - 73) / 62) * 1200},${((54 - lat) / 36) * 860}`).join(" ")
-  );
+  ), []);
 
   return (
     <div 
@@ -300,7 +314,7 @@ export default function MapView({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 5, scale: 1.5 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="absolute top-12 left-4 right-4 md:left-auto md:right-4 md:bottom-auto md:top-4 md:w-80 bg-white rounded-xl shadow-2xl overflow-hidden z-50 border border-gray-100"
+            className="absolute top-14 left-4 right-4 md:left-auto md:right-4 md:bottom-auto md:top-4 md:w-80 bg-white rounded-xl shadow-2xl overflow-hidden z-50 border border-gray-100"
           >
             {selectedPOI.images && selectedPOI.images.length > 0 && (
               <div className="relative w-full h-32 bg-gray-200">
