@@ -25,7 +25,7 @@ const AutoZoomController = ({ bounds }: { bounds: { x: number, y: number, w: num
     <div 
       id="route-boundingBox" 
       className="absolute pointer-events-none opacity-0" 
-      style={{ left: bounds.x, top: bounds.y-10, width: bounds.w, height: bounds.h }}
+      style={{ left: bounds.x, top: bounds.y-10, width: bounds.w, height: bounds.h-4 }}
     />
   );
 };
@@ -38,7 +38,8 @@ const MapMarkers = ({ finalRenderPois, selectedPOI, setSelectedPOI, isExpanded }
   // 1倍左右（全局鸟瞰）缩小视觉占比（~0.7），防重叠
   // 极限放大到20倍时增大视觉占比（~1.2），保清晰度
   //const targetVisualScale = Math.max(0.6, Math.min(1.5, 0.7 * Math.pow(scale, 0.2)));
-  const targetVisualScale = 0.7; // 锁定视觉倍率
+  //const targetVisualScale = 0.7; // 锁定视觉倍率
+  const targetVisualScale = Math.max(0.5, Math.min(1.2, 0.35 * Math.pow(scale, 0.336)));
   const dynamicScale = targetVisualScale / scale;
 
 
@@ -79,7 +80,7 @@ const MapMarkers = ({ finalRenderPois, selectedPOI, setSelectedPOI, isExpanded }
               }}
             >
               <span 
-                className={`text-[9.5px] px-1.5 py-0.5 rounded mb-0.5 font-bold transition-all shadow-sm whitespace-nowrap border border-white/50
+                className={`text-[10px] px-1.5 py-0.5 rounded mb-0.5 font-bold transition-all shadow-sm whitespace-nowrap border border-white/50
                   ${selectedPOI?.id === poi.id 
                     ? 'bg-brand text-white opacity-100 translate-y-0' 
                     : !isExpanded
@@ -299,7 +300,7 @@ export default function MapView({
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 5, scale: 1.5 }}
             transition={{ type: "spring", stiffness: 300, damping: 25 }}
-            className="absolute bottom-[160px] left-4 right-4 md:left-auto md:right-4 md:bottom-auto md:top-4 md:w-80 bg-white rounded-xl shadow-2xl overflow-hidden z-50 border border-gray-100"
+            className="absolute top-12 left-4 right-4 md:left-auto md:right-4 md:bottom-auto md:top-4 md:w-80 bg-white rounded-xl shadow-2xl overflow-hidden z-50 border border-gray-100"
           >
             {selectedPOI.images && selectedPOI.images.length > 0 && (
               <div className="relative w-full h-32 bg-gray-200">
