@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { Map } from "lucide-react";
 import RouteCard from "@/components/RouteCard";
 import { getRoutes } from "@/lib/notion";
 import SearchBar from "@/components/SearchBar";
@@ -112,6 +113,14 @@ export default async function Home({
       <Suspense fallback={<Skeleton />}>
         <RouteList routes={routes} query={query} tag={tag} />
       </Suspense>
+
+      {/* Floating Map Toggle Button */}
+      <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+        <Link href="/map" className="flex items-center gap-2 bg-gray-900 text-white px-3 py-2 rounded-full shadow-lg shadow-gray-900/40 hover:scale-105 active:scale-95 transition-transform duration-200 backdrop-blur-md border border-gray-700/50">
+          <Map size={18} />
+          <span className="text-sm font-bold tracking-wide">地图视图</span>
+        </Link>
+      </div>
     </div>
   );
 }

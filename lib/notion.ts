@@ -132,8 +132,8 @@ export async function getRouteById(id: string): Promise<RouteData | null> {
 // POIs Database (从表)
 // ========================
 
-export async function getRoutePOIs(routeId: string, pagePoiIds: string[] = [], routeNotionId?: string): Promise<POIData[]> {
-  const cacheKey = `${routeId}_${[...pagePoiIds].sort().join(',')}`;
+export async function getAllPOIs(): Promise<POIData[]> {
+  const cacheKey = "all_pois";
   const now = Date.now();
   if (poisCache[cacheKey] && now - poisCache[cacheKey].timestamp < CACHE_TTL) {
     return poisCache[cacheKey].data;
@@ -141,7 +141,7 @@ export async function getRoutePOIs(routeId: string, pagePoiIds: string[] = [], r
 
   if (!notionToken || !poiDatabaseId) {
       console.warn("NOTION_TOKEN or NOTION_POI_DATABASE_ID is missing. Using mock POIs.");
-      return getMockPOIs().then(pois => pois.filter(p => p.routeIds.includes(routeId) || (routeNotionId && p.routeIds.includes(routeNotionId)) || p.routeIds.includes("all")));
+      return getMockPOIs();
   }
   
   try {
@@ -220,21 +220,33 @@ export async function getRoutePOIs(routeId: string, pagePoiIds: string[] = [], r
       };
     });
 
-    // Optionally filter by route
-    const finalPois = results.filter((poi: POIData) => {
-      const matchRelation = routeNotionId ? poi.routeIds.includes(routeNotionId) : false;
-      const matchId = pagePoiIds.includes(poi.id);
-      const matchRouteId = poi.routeIds.includes(routeId);
-      return matchRelation || matchId || matchRouteId;
-    }).sort((a: POIData, b: POIData) => a.sequence - b.sequence);
-
-    poisCache[cacheKey] = { data: finalPois, timestamp: Date.now() };
-    return finalPois;
-
+    poisCache[cacheKey] = { data: results, timestamp: Date.now() };
+    return results;
   } catch (error: any) {
     console.error("Notion API Error (POIs Database):", error.message);
-    return getMockPOIs().then(pois => pois.filter(p => p.routeIds.includes(routeId) || p.routeIds.includes("all")));
+    return getMockPOIs();
   }
+}
+
+export async function getRoutePOIs(routeId: string, pagePoiIds: string[] = [], routeNotionId?: string): Promise<POIData[]> {
+  const cacheKey = `${routeId}_${[...pagePoiIds].sort().join(',')}`;
+  const now = Date.now();
+  if (poisCache[cacheKey] && now - poisCache[cacheKey].timestamp < CACHE_TTL) {
+    return poisCache[cacheKey].data;
+  }
+
+  const results = await getAllPOIs();
+
+  // Optionally filter by route
+  const finalPois = results.filter((poi: POIData) => {
+    const matchRelation = routeNotionId ? poi.routeIds.includes(routeNotionId) : false;
+    const matchId = pagePoiIds.includes(poi.id);
+    const matchRouteId = poi.routeIds.includes(routeId);
+    return matchRelation || matchId || matchRouteId;
+  }).sort((a: POIData, b: POIData) => a.sequence - b.sequence);
+
+  poisCache[cacheKey] = { data: finalPois, timestamp: Date.now() };
+  return finalPois;
 }
 
 // ========================

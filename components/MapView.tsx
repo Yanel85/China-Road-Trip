@@ -104,16 +104,24 @@ const MapMarkers = ({ finalRenderPois, selectedPOI, setSelectedPOI, isExpanded }
 
 export default function MapView({ 
   pois = [], 
+  multiRoutesPois,
   isExpanded = true, 
   setIsExpanded,
   selectedPOI: propSelectedPOI,
-  setSelectedPOI: propSetSelectedPOI
+  setSelectedPOI: propSetSelectedPOI,
+  showRoutes = true,
+  minScale = 1.5,
+  onViewRoute
 }: { 
-  pois: POIData[], 
+  pois?: POIData[], 
+  multiRoutesPois?: POIData[][],
   isExpanded?: boolean, 
   setIsExpanded?: (v: boolean) => void,
   selectedPOI?: POIData | null,
-  setSelectedPOI?: (v: POIData | null) => void
+  setSelectedPOI?: (v: POIData | null) => void,
+  showRoutes?: boolean,
+  minScale?: number,
+  onViewRoute?: (routeIds: string[]) => void
 }) {
   const [localSelectedPOI, setLocalSelectedPOI] = useState<POIData | null>(null);
   const selectedPOI = propSelectedPOI !== undefined ? propSelectedPOI : localSelectedPOI;
@@ -163,17 +171,58 @@ export default function MapView({
     return { x, y };
   }, []);
 
-  const pathPoints = useMemo(() => 
-    [...validPois].sort((a, b) => a.sequence - b.sequence).map(p => getPosition(p.lat, p.lng)), 
-    [validPois, getPosition]
-  );
+  const multiPaths = useMemo(() => {
+    const rawRoutes = multiRoutesPois && multiRoutesPois.length > 0 ? multiRoutesPois : [validPois];
+    
+    return rawRoutes.map(routePois => {
+      const points = [...routePois]
+        .sort((a, b) => a.sequence - b.sequence)
+        // ensure lat/lng are properly set if passed from validPois, if multiRoutesPois is used we need to compute pos
+        .map(poi => {
+           let lat = NaN, lng = NaN;
+           if (poi.coordinates) {
+             const parts = poi.coordinates.split(',');
+             if (parts.length >= 2) {
+               lat = parseFloat(parts[0].trim());
+               lng = parseFloat(parts[1].trim());
+               if (lat > 60 && lng < 60) {
+                 const temp = lat; lat = lng; lng = temp;
+               }
+             }
+           }
+           return getPosition(lat, lng);
+        })
+        .filter(p => !isNaN(p.x) && !isNaN(p.y));
+
+      let d = "";
+      if (points.length > 0) {
+        d = `M ${points[0].x} ${points[0].y}`;
+        for (let i = 0; i < points.length - 1; i++) {
+          const p0 = i === 0 ? points[0] : points[i - 1];
+          const p1 = points[i];
+          const p2 = points[i + 1];
+          const p3 = i + 2 < points.length ? points[i + 2] : p2;
+          
+          const k = 0.15; // Bezier tension
+          const cp1x = p1.x + (p2.x - p0.x) * k;
+          const cp1y = p1.y + (p2.y - p0.y) * k;
+          const cp2x = p2.x - (p3.x - p1.x) * k;
+          const cp2y = p2.y - (p3.y - p1.y) * k;
+          
+          d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
+        }
+      }
+      return { d, points };
+    });
+  }, [multiRoutesPois, validPois, getPosition]);
 
   const routeBounds = useMemo(() => {
     let routeMinX = Infinity, routeMaxX = -Infinity;
     let routeMinY = Infinity, routeMaxY = -Infinity;
     
-    if (pathPoints.length > 0) {
-        pathPoints.forEach(p => {
+    const allPoints = multiPaths.flatMap(p => p.points);
+    if (allPoints.length > 0) {
+        allPoints.forEach(p => {
             if (p.x < routeMinX) routeMinX = p.x;
             if (p.x > routeMaxX) routeMaxX = p.x;
             if (p.y < routeMinY) routeMinY = p.y;
@@ -187,29 +236,7 @@ export default function MapView({
       w: routeMinX === Infinity ? 0 : routeMaxX - routeMinX,
       h: routeMinY === Infinity ? 0 : routeMaxY - routeMinY
     };
-  }, [pathPoints]);
-
-  const pathD = useMemo(() => {
-    let d = "";
-    if (pathPoints.length > 0) {
-      d = `M ${pathPoints[0].x} ${pathPoints[0].y}`;
-      for (let i = 0; i < pathPoints.length - 1; i++) {
-        const p0 = i === 0 ? pathPoints[0] : pathPoints[i - 1];
-        const p1 = pathPoints[i];
-        const p2 = pathPoints[i + 1];
-        const p3 = i + 2 < pathPoints.length ? pathPoints[i + 2] : p2;
-        
-        const k = 0.15; // Bezier tension
-        const cp1x = p1.x + (p2.x - p0.x) * k;
-        const cp1y = p1.y + (p2.y - p0.y) * k;
-        const cp2x = p2.x - (p3.x - p1.x) * k;
-        const cp2y = p2.y - (p3.y - p1.y) * k;
-        
-        d += ` C ${cp1x} ${cp1y}, ${cp2x} ${cp2y}, ${p2.x} ${p2.y}`;
-      }
-    }
-    return d;
-  }, [pathPoints]);
+  }, [multiPaths]);
 
   const finalRenderPois = useMemo(() => 
     filteredPOIs.map(poi => {
@@ -260,7 +287,7 @@ export default function MapView({
 
       <TransformWrapper 
          initialScale={5}
-         minScale={1.5}
+         minScale={minScale}
          maxScale={50}
          centerOnInit={false}
          wheel={{ step: 1 }}
@@ -288,13 +315,15 @@ export default function MapView({
               style={{ backgroundImage: 'radial-gradient(circle, #94a3b8 1.5px, transparent 1.5px)', backgroundSize: '40px 40px'}}
             />
 
-            {/* mapped structural path */}
-            {pathD && (
-              <svg className="absolute inset-0 pointer-events-none" style={{ width: canvasW, height: canvasH }}>
-                 {/* Crisp fine line */}
-                 <path d={pathD} fill="none" stroke="#F39C12" strokeWidth="1" strokeLinecap="round" vectorEffect="non-scaling-stroke" className="opacity-100"/>
-              </svg>
-            )}
+            {/* mapped structural paths */}
+            {showRoutes && multiPaths.map((pathObj, idx) => (
+              pathObj.d && (
+                <svg key={idx} className="absolute inset-0 pointer-events-none" style={{ width: canvasW, height: canvasH }}>
+                   {/* Crisp fine line */}
+                  <path d={pathObj.d} fill="none" stroke="#F39C12" strokeWidth="1" strokeLinecap="round" vectorEffect="non-scaling-stroke" className="opacity-100"/>
+                </svg>
+              )
+            ))}
 
             {/* Map markers with dynamic scale */}
             <MapMarkers 
@@ -372,6 +401,17 @@ export default function MapView({
               <p className="text-xs text-gray-600 leading-relaxed mb-4 line-clamp-3">{selectedPOI.description || '暂无点位描述信息'}</p>
 
               <div className="flex space-x-2">
+                {onViewRoute && selectedPOI.routeIds?.length > 0 && (
+                  <button 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onViewRoute(selectedPOI.routeIds);
+                    }}
+                    className="flex-[0.6] flex items-center justify-center px-3 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
+                  >
+                    查看相关线路
+                  </button>
+                )}
                 <button 
                   onClick={(e) => {
                     e.stopPropagation();
@@ -385,10 +425,10 @@ export default function MapView({
                     }
                     window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedPOI.title)}`, '_blank');
                   }}
-                  className="flex-1 flex items-center justify-center px-4 py-2 bg-brand text-white text-sm font-medium rounded-lg hover:bg-brand/90 transition-colors"
+                  className={`${onViewRoute && selectedPOI.routeIds?.length > 0 ? 'flex-[0.4]' : 'flex-1'} flex items-center justify-center px-4 py-2 bg-brand text-white text-sm font-medium rounded-lg hover:bg-brand/90 transition-colors`}
                 >
-                  <Navigation size={16} className="mr-1.5" />
-                  导航去这
+                  <Navigation size={16} className={onViewRoute && selectedPOI.routeIds?.length > 0 ? "mr-1" : "mr-1.5"} />
+                  {onViewRoute && selectedPOI.routeIds?.length > 0 ? "导航" : "导航去这"}
                 </button>
               </div>
             </div>
