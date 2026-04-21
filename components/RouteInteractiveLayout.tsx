@@ -60,29 +60,51 @@ export default function RouteInteractiveLayout({ route, pois }: { route: any; po
     return sortAsc ? diff : -diff;
   });
 
-  // Calculate Altitude Chart Data
-  const corePois = pois.filter(p => ['垭口', '地点', '城市', '途经点', '山峰'].includes(p.type) && p.altitude > 0);
-  const scenicPois = pois.filter(p => p.type === '景点' && p.altitude > 0);
+  // Calculate Altitude Chart Data: Exclude '景点', include start, end, highest, lowest, total 5-16 points
+  const validChartPois = [...pois]
+    .filter(p => p.type !== '景点' && typeof p.altitude === 'number')
+    .sort((a, b) => a.sequence - b.sequence);
 
-  const getEvenlySpaced = (arr: any[], count: number) => {
-    if (arr.length <= count) return arr;
-    if (count <= 0) return [];
-    if (count === 1) return [arr[Math.floor(arr.length / 2)]];
-    const step = (arr.length - 1) / (count - 1);
-    return Array.from({length: count}, (_, i) => arr[Math.round(i * step)]);
-  };
-
-  const allowedScenicCount = Math.max(3, Math.min(8, 15 - corePois.length));
-  let chartPois = [...corePois, ...getEvenlySpaced(scenicPois, allowedScenicCount)];
+  let chartPois: any[] = [];
   
-  if (chartPois.length > 15) {
-    chartPois.sort((a, b) => a.sequence - b.sequence);
-    chartPois = getEvenlySpaced(chartPois, 15);
+  if (validChartPois.length > 0) {
+    const startPoi = validChartPois[0];
+    const endPoi = validChartPois[validChartPois.length - 1];
+
+    let highestPoi = validChartPois[0];
+    let lowestPoi = validChartPois[0];
+
+    validChartPois.forEach(p => {
+      if (p.altitude > highestPoi.altitude) highestPoi = p;
+      if (p.altitude < lowestPoi.altitude) lowestPoi = p;
+    });
+
+    const essentialIds = new Set([startPoi.id, endPoi.id, highestPoi.id, lowestPoi.id]);
+    const essentialPois = validChartPois.filter(p => essentialIds.has(p.id));
+
+    let selectedPois = [...essentialPois];
+    const targetCount = Math.max(5, Math.min(16, validChartPois.length));
+    const remainingCount = targetCount - essentialPois.length;
+
+    if (remainingCount > 0) {
+      const candidates = validChartPois.filter(p => !essentialIds.has(p.id));
+      if (candidates.length <= remainingCount) {
+        selectedPois = selectedPois.concat(candidates);
+      } else {
+        const step = candidates.length / remainingCount;
+        for (let i = 0; i < remainingCount; i++) {
+          selectedPois.push(candidates[Math.floor(i * step)]);
+        }
+      }
+    }
+
+    chartPois = selectedPois.sort((a, b) => a.sequence - b.sequence);
   }
 
-  const altitudeChartData = chartPois
-    .sort((a, b) => a.sequence - b.sequence)
-    .map(p => ({ name: p.title, altitude: p.altitude || 0 }));
+  const altitudeChartData = chartPois.map(p => ({ 
+    name: p.title, 
+    altitude: p.altitude || 0 
+  }));
 
   return (
     <div className="relative h-[100dvh] w-full bg-gray-100 overflow-hidden">
