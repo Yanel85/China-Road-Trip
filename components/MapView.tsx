@@ -176,6 +176,7 @@ export default function MapView({
     
     return rawRoutes.map(routePois => {
       const points = [...routePois]
+        .filter(poi => poi.type !== '景点')
         .sort((a, b) => a.sequence - b.sequence)
         // ensure lat/lng are properly set if passed from validPois, if multiRoutesPois is used we need to compute pos
         .map(poi => {

@@ -1,7 +1,7 @@
 import { Client } from "@notionhq/client";
 import { RouteData, POIData, RouteStatus, POIType, RoadStatus } from "@/types";
 
-const CACHE_TTL = process.env.NODE_ENV === 'development' ? 600 * 1000 : 30 * 60 * 1000;
+const CACHE_TTL = process.env.NODE_ENV === 'development' ? 60 * 1000 : 30 * 60 * 1000;
 
 interface CacheEntry<T> {
   data: T;
