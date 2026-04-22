@@ -176,7 +176,7 @@ export default function MapView({
     
     return rawRoutes.map(routePois => {
       const points = [...routePois]
-        .filter(poi => poi.type !== '景点')
+        .filter(poi => poi.type === '地点' || poi.type === '垭口')
         .sort((a, b) => a.sequence - b.sequence)
         // ensure lat/lng are properly set if passed from validPois, if multiRoutesPois is used we need to compute pos
         .map(poi => {
@@ -298,7 +298,7 @@ export default function MapView({
           <AutoZoomController bounds={routeBounds} />
           
           <div style={{ width: canvasW, height: canvasH }} className="relative bg-[#cbd5e1]">
-            {/* China Map Background Layer */}
+            {/* ... other layers ... */}
             <svg className="absolute inset-0 pointer-events-none" style={{ width: canvasW, height: canvasH }}>
                {chinaPolygonPaths.map((pathPoints, idx) => (
                  <polygon key={idx} points={pathPoints} fill="#f1f5f9" stroke="#94a3b8" strokeWidth="1" strokeLinejoin="round" vectorEffect="non-scaling-stroke" />
@@ -317,14 +317,17 @@ export default function MapView({
             />
 
             {/* mapped structural paths */}
-            {showRoutes && multiPaths.map((pathObj, idx) => (
-              pathObj.d && (
+            {showRoutes && multiPaths.map((pathObj, idx) => {
+              // Predefined colors for up to 5 lines distinctiveness
+              const colors = ['#F39C12', '#E74C3C', '#9B59B6', '#3498DB', '#1ABC9C'];
+              const strokeColor = colors[idx % colors.length];
+              return pathObj.d && (
                 <svg key={idx} className="absolute inset-0 pointer-events-none" style={{ width: canvasW, height: canvasH }}>
                    {/* Crisp fine line */}
-                  <path d={pathObj.d} fill="none" stroke="#F39C12" strokeWidth="1" strokeLinecap="round" vectorEffect="non-scaling-stroke" className="opacity-100"/>
+                  <path d={pathObj.d} fill="none" stroke={strokeColor} strokeWidth="1" strokeLinecap="round" vectorEffect="non-scaling-stroke" className="opacity-100"/>
                 </svg>
               )
-            ))}
+            })}
 
             {/* Map markers with dynamic scale */}
             <MapMarkers 

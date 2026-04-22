@@ -62,7 +62,7 @@ export default function RouteInteractiveLayout({ route, pois }: { route: any; po
 
   // Calculate Altitude Chart Data: Exclude '景点', include start, end, highest, lowest, total 5-16 points
   const validChartPois = [...pois]
-    .filter(p => p.type !== '景点' && typeof p.altitude === 'number')
+    .filter(p => (p.type === '地点' || p.type === '垭口') && typeof p.altitude === 'number')
     .sort((a, b) => a.sequence - b.sequence);
 
   let chartPois: any[] = [];
@@ -83,7 +83,7 @@ export default function RouteInteractiveLayout({ route, pois }: { route: any; po
     const essentialPois = validChartPois.filter(p => essentialIds.has(p.id));
 
     let selectedPois = [...essentialPois];
-    const targetCount = Math.max(5, Math.min(16, validChartPois.length));
+    const targetCount = Math.max(5, Math.min(18, validChartPois.length));
     const remainingCount = targetCount - essentialPois.length;
 
     if (remainingCount > 0) {

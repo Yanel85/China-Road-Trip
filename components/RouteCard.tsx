@@ -3,11 +3,14 @@
 import Link from "next/link";
 import Image from "next/image";
 import { RouteData } from "@/types";
-import { CheckCircle, AlertTriangle, XCircle, Info, Share } from "lucide-react";
+import { CheckCircle, AlertTriangle, XCircle, Info, Heart } from "lucide-react";
 import { MouseEvent } from "react";
+import { useFavorites } from "@/hooks/useFavorites";
 
 export default function RouteCard({ data }: { data: RouteData }) {
   const statusText = data.status || '未知';
+  const { favorites, toggleFavorite } = useFavorites();
+  const isFavorited = favorites.includes(data.id);
   
   // Keyword matching for status
   let statusColor = 'bg-gray-500 text-white';
@@ -30,26 +33,10 @@ export default function RouteCard({ data }: { data: RouteData }) {
 
   const isClosed = statusText.includes('封闭') || statusText.includes('closed');
 
-  const handleShare = async (e: MouseEvent) => {
+  const handleFavorite = async (e: MouseEvent) => {
     e.preventDefault(); // Prevent Link navigation
     e.stopPropagation();
-
-    const shareData = {
-      title: data.title,
-      text: `推荐一条超赞的户外路线：${data.title}（全程 ${data.distance}km）`,
-      url: `${window.location.origin}/route/${data.id}`,
-    };
-
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch (err) {
-        console.error("Shared failed:", err);
-      }
-    } else {
-      navigator.clipboard.writeText(shareData.url);
-      alert("链接已复制到剪贴板！");
-    }
+    toggleFavorite(data.id);
   };
 
   return (
@@ -64,11 +51,11 @@ export default function RouteCard({ data }: { data: RouteData }) {
           <div className="flex justify-between items-start gap-2">
             <h3 className="font-bold text-gray-900 text-base line-clamp-2 leading-tight">{data.title}</h3>
             <button 
-              onClick={handleShare}
-              className="p-1.5 flex-shrink-0 text-gray-400 hover:text-brand hover:bg-gray-100 rounded-full transition-colors focus:outline-none"
-              aria-label="分享"
+              onClick={handleFavorite}
+              className={`p-1.5 flex-shrink-0 rounded-full transition-colors focus:outline-none ${isFavorited ? 'text-red-500 bg-red-50 hover:bg-red-100' : 'text-gray-400 hover:text-red-400 hover:bg-gray-100'}`}
+              aria-label={isFavorited ? "取消收藏" : "收藏"}
             >
-              <Share size={14} strokeWidth={2.5} />
+              <Heart size={14} strokeWidth={2.5} fill={isFavorited ? "currentColor" : "none"} />
             </button>
           </div>
           

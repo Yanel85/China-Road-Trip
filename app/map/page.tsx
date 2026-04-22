@@ -11,15 +11,16 @@ export default async function ExploreMapPage() {
   const allPois = await getAllPOIs();
 
   // Group POIs by route to draw separate lines
-  const multiRoutesPois = routes.map(route => {
-    return allPois
+  const multiRoutesPoisConfig = routes.map(route => {
+    const pois = allPois
       .filter(poi => poi.routeIds.includes(route.id) || (route.notionId && poi.routeIds.includes(route.notionId)) || poi.routeIds.includes('all'))
       .sort((a, b) => a.sequence - b.sequence);
-  }).filter(pois => pois.length > 0);
+    return { routeId: route.id, pois };
+  }).filter(item => item.pois.length > 0);
 
   // Deduplicate POIs for markers
   const uniquePoisMap = new Map();
-  multiRoutesPois.flat().forEach(poi => {
+  multiRoutesPoisConfig.map(item => item.pois).flat().forEach(poi => {
     if (!uniquePoisMap.has(poi.id)) {
       uniquePoisMap.set(poi.id, poi);
     }
@@ -36,8 +37,9 @@ export default async function ExploreMapPage() {
       <div className="w-full h-full absolute inset-0">
         <ExploreMapClient 
           mapMarkers={mapMarkers} 
-          multiRoutesPois={multiRoutesPois}
+          multiRoutesPoisConfig={multiRoutesPoisConfig}
           routesMapping={routesMapping}
+          routes={routes}
         />
       </div>
 
@@ -47,9 +49,6 @@ export default async function ExploreMapPage() {
             <Link href="/" className="w-10 h-10 bg-white/90 backdrop-blur-md rounded-full shadow-lg flex items-center justify-center text-gray-700 hover:bg-gray-50 transition-colors border border-gray-100">
               <ChevronLeft size={20} strokeWidth={2.5} />
             </Link>
-            <div className="bg-white/90 backdrop-blur-md px-4 py-2.5 rounded-full shadow-lg border border-gray-100">
-              <h1 className="font-bold text-gray-800 text-sm tracking-wide">返回线路列表</h1>
-            </div>
           </div>
         </div>
       </div>
