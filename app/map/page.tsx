@@ -18,14 +18,13 @@ export default async function ExploreMapPage() {
     return { routeId: route.id, pois };
   }).filter(item => item.pois.length > 0);
 
-  // Deduplicate POIs for markers
-  const uniquePoisMap = new Map();
-  multiRoutesPoisConfig.map(item => item.pois).flat().forEach(poi => {
-    if (!uniquePoisMap.has(poi.id)) {
-      uniquePoisMap.set(poi.id, poi);
-    }
+  // Map markers: Use all POIs that have valid coordinates and altitude data
+  const mapMarkers = allPois.filter(poi => {
+    return poi.coordinates && 
+           poi.coordinates.includes(',') && 
+           poi.altitude !== null && 
+           poi.altitude !== undefined;
   });
-  const mapMarkers = Array.from(uniquePoisMap.values());
 
   const routesMapping = routes.reduce((acc, route) => {
     if (route.notionId) acc[route.notionId] = route.id;

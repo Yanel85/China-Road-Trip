@@ -172,7 +172,9 @@ export default function MapView({
   }, []);
 
   const multiPaths = useMemo(() => {
-    const rawRoutes = multiRoutesPois && multiRoutesPois.length > 0 ? multiRoutesPois : [validPois];
+    // If multiRoutesPois is explicitly passed (e.g. from ExploreMapClient), use it directly even if empty.
+    // If undefined (e.g. from single route page), fallback to [validPois].
+    const rawRoutes = multiRoutesPois !== undefined ? multiRoutesPois : [validPois];
     
     return rawRoutes.map(routePois => {
       const points = [...routePois]
@@ -221,7 +223,11 @@ export default function MapView({
     let routeMinX = Infinity, routeMaxX = -Infinity;
     let routeMinY = Infinity, routeMaxY = -Infinity;
     
-    const allPoints = multiPaths.flatMap(p => p.points);
+    // If no paths are drawn (Explore map with no selections), use all valid POIs for bounds
+    const allPoints = multiPaths.length > 0 
+      ? multiPaths.flatMap(p => p.points)
+      : validPois.map(p => getPosition(p.lat, p.lng));
+
     if (allPoints.length > 0) {
         allPoints.forEach(p => {
             if (p.x < routeMinX) routeMinX = p.x;
@@ -237,7 +243,7 @@ export default function MapView({
       w: routeMinX === Infinity ? 0 : routeMaxX - routeMinX,
       h: routeMinY === Infinity ? 0 : routeMaxY - routeMinY
     };
-  }, [multiPaths]);
+  }, [multiPaths, validPois, getPosition]);
 
   const finalRenderPois = useMemo(() => 
     filteredPOIs.map(poi => {
