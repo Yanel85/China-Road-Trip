@@ -96,7 +96,7 @@ export default async function Home({
         </div>
       </section>
       
-      <section className="px-5 mt-4 group">
+      {/*<section className="px-5 mt-4 group">
         <div className="relative w-full aspect-[16/9] rounded-20 overflow-hidden shadow-card transition-all duration-300 ease-in-out group-active:scale-[0.98]">
           <Image src="https://picsum.photos/seed/hero/800/400" alt="G318 实时路况" fill className="object-cover" referrerPolicy="no-referrer" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
@@ -108,7 +108,7 @@ export default async function Home({
             <h1 className="text-2xl font-bold">当日主推：横穿雪山</h1>
           </div>
         </div>
-      </section>
+      </section>*/}
 
       <Suspense fallback={<Skeleton />}>
         <RouteList routes={routes} query={query} tag={tag} />

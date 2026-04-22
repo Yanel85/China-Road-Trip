@@ -425,15 +425,36 @@ export default function MapView({
                 <button 
                   onClick={(e) => {
                     e.stopPropagation();
-                    const latlng = selectedPOI.coordinates;
-                    if (latlng) {
-                      const [lat, lng] = latlng.split(',');
-                      if (lat && lng) {
-                        window.open(`https://uri.amap.com/marker?position=${lng.trim()},${lat.trim()}&name=${encodeURIComponent(selectedPOI.title)}`, '_blank');
-                        return;
+                    const encodeName = encodeURIComponent(selectedPOI.title);
+                    
+                    if (typeof window !== 'undefined') {
+                      const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                      const isAndroid = /Android/.test(navigator.userAgent);
+                      
+                      const latlng = selectedPOI.coordinates;
+                      if (latlng) {
+                        const [lat, lng] = latlng.split(',').map(s => s.trim());
+                        if (lat && lng) {
+                          if (isIOS) {
+                            window.location.href = `http://maps.apple.com/?ll=${lat},${lng}&q=${encodeName}`;
+                          } else if (isAndroid) {
+                            window.location.href = `geo:${lat},${lng}?q=${lat},${lng}(${encodeName})`;
+                          } else {
+                            window.open(`https://uri.amap.com/marker?position=${lng},${lat}&name=${encodeName}`, '_blank');
+                          }
+                          return;
+                        }
+                      }
+                      
+                      // Fallback when no coordinates
+                      if (isIOS) {
+                        window.location.href = `http://maps.apple.com/?q=${encodeName}`;
+                      } else if (isAndroid) {
+                        window.location.href = `geo:0,0?q=${encodeName}`;
+                      } else {
+                        window.open(`https://www.google.com/maps/search/?api=1&query=${encodeName}`, '_blank');
                       }
                     }
-                    window.open(`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(selectedPOI.title)}`, '_blank');
                   }}
                   className={`${onViewRoute && selectedPOI.routeIds?.length > 0 ? 'flex-[0.4]' : 'flex-1'} flex items-center justify-center px-4 py-2 bg-brand text-white text-sm font-medium rounded-lg hover:bg-brand/90 transition-colors`}
                 >
