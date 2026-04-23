@@ -1,5 +1,6 @@
 import { Client } from "@notionhq/client";
 import { RouteData, POIData, RouteStatus, POIType, RoadStatus } from "@/types";
+import { parseCoordinates, distancePointToSegment } from "./geo";
 
 const CACHE_TTL = process.env.NODE_ENV === 'development' ? 60 * 1000 : 30 * 60 * 1000;
 
@@ -96,11 +97,10 @@ export async function getRoutes(): Promise<RouteData[]> {
           cover = file.file?.url || file.external?.url || cover;
       }
 
-      let poiIds: string[] = [];
-      const relationProp = properties["Relation: POIs"] || properties["POIs"];
-      if (relationProp?.relation) {
-        poiIds = relationProp.relation.map((r: any) => r.id);
-      }
+      const routeSeqString = extractText("Route_Sequence");
+      const routeSequence = routeSeqString 
+        ? routeSeqString.split(',').map((s: string) => s.trim()).filter(Boolean)
+        : [];
 
       return {
         id: realId,
@@ -111,7 +111,7 @@ export async function getRoutes(): Promise<RouteData[]> {
         season,
         status,
         cover,
-        poiIds,
+        routeSequence,
       };
     });
 
@@ -168,8 +168,9 @@ export async function getAllPOIs(): Promise<POIData[]> {
 
     const results = allResults
       .filter((page: any) => !page.in_trash)
-      .map((page: any) => {
+      .map((page: any, index: number) => {
       const properties = page.properties;
+      if (index === 0) console.log("SAMPLE POI PROPS: ", JSON.stringify(properties, null, 2));
       const extractText = (propName: string) => {
           const prop = properties[propName];
           if (!prop) return "";
@@ -180,6 +181,7 @@ export async function getAllPOIs(): Promise<POIData[]> {
       };
 
       const title = extractText("Name") || "未命名点位";
+      const poiId = extractText("POI_ID") || "";
       const type = (properties["Type"]?.select?.name || "景点") as POIType;
       const sequence = properties["Sequence"]?.number || 0;
       const coordinates = extractText("Coordinates") || "";
@@ -199,16 +201,10 @@ export async function getAllPOIs(): Promise<POIData[]> {
           images = imageProp.files.map((file: any) => file.file?.url || file.external?.url).filter(Boolean);
       }
 
-      let routeIds: string[] = [];
-      const routeProp = properties["Route"];
-      if (routeProp?.relation) {
-        routeIds = routeProp.relation.map((r: any) => r.id);
-      }
-
       return {
         id: page.id,
+        poiId,
         title,
-        routeIds,
         type,
         sequence,
         coordinates,
@@ -228,22 +224,62 @@ export async function getAllPOIs(): Promise<POIData[]> {
   }
 }
 
-export async function getRoutePOIs(routeId: string, pagePoiIds: string[] = [], routeNotionId?: string): Promise<POIData[]> {
-  const cacheKey = `${routeId}_${[...pagePoiIds].sort().join(',')}`;
+export async function getRoutePOIs(routeId: string, routeSequence?: string[]): Promise<POIData[]> {
+  const cacheKey = `${routeId}_seq`;
   const now = Date.now();
   if (poisCache[cacheKey] && now - poisCache[cacheKey].timestamp < CACHE_TTL) {
     return poisCache[cacheKey].data;
   }
 
   const results = await getAllPOIs();
+  if (!routeSequence || routeSequence.length === 0) return [];
 
-  // Optionally filter by route
-  const finalPois = results.filter((poi: POIData) => {
-    const matchRelation = routeNotionId ? poi.routeIds.includes(routeNotionId) : false;
-    const matchId = pagePoiIds.includes(poi.id);
-    const matchRouteId = poi.routeIds.includes(routeId);
-    return matchRelation || matchId || matchRouteId;
-  }).sort((a: POIData, b: POIData) => a.sequence - b.sequence);
+  // 1. Get structural points (D and S) assigned to this route
+  const structuralPois = results.filter((poi: POIData) => routeSequence.includes(poi.poiId));
+  // Sort them so they match the text sequence order exactly
+  structuralPois.sort((a, b) => routeSequence.indexOf(a.poiId) - routeSequence.indexOf(b.poiId));
+
+  // 2. Build coordinate segments for the route to check distances
+  const structuralCoords = structuralPois
+    .map(p => parseCoordinates(p.coordinates))
+    .filter(c => c !== null) as [number, number][];
+
+  // 3. Find candidate scattered points (V, P, etc. not in routeSequence)
+  const candidatePois = results.filter((poi: POIData) => !routeSequence.includes(poi.poiId));
+  const attachedSpots: POIData[] = [];
+
+  const MAX_DISTANCE_KM = 80; // 30km radius for auto-snapping
+
+  if (structuralCoords.length > 0) {
+    for (const poi of candidatePois) {
+      const pCoords = parseCoordinates(poi.coordinates);
+      if (!pCoords) continue;
+
+      let isAttached = false;
+
+      if (structuralCoords.length === 1) {
+         // Only one point in route
+         const dist = distancePointToSegment(pCoords, structuralCoords[0], structuralCoords[0]);
+         if (dist <= MAX_DISTANCE_KM) isAttached = true;
+      } else {
+         // Check distance to closest path segment
+         for (let i = 0; i < structuralCoords.length - 1; i++) {
+            const dist = distancePointToSegment(pCoords, structuralCoords[i], structuralCoords[i + 1]);
+            if (dist <= MAX_DISTANCE_KM) {
+              isAttached = true;
+              break;
+            }
+         }
+      }
+
+      if (isAttached) {
+        attachedSpots.push(poi);
+      }
+    }
+  }
+
+  // Final merge (front-end layout handles their respective sequence sorting)
+  const finalPois = [...structuralPois, ...attachedSpots];
 
   poisCache[cacheKey] = { data: finalPois, timestamp: Date.now() };
   return finalPois;
@@ -256,8 +292,8 @@ export async function getRoutePOIs(routeId: string, pagePoiIds: string[] = [], r
 async function getMockRoutes(): Promise<RouteData[]> {
   await new Promise((resolve) => setTimeout(resolve, 300));
   return [
-    { id: "1", title: "NOTION未配置 (测试数据)", distance: 2140, tags: ["进藏"], season: ["夏", "秋"], status: "开放", cover: "https://picsum.photos/seed/route1/800/600", poiIds:[] },
-    { id: "2", title: "川藏南线 G318", distance: 2755, tags: ["极致风光", "高难度"], season: ["春", "夏"], status: "部分封路", cover: "https://picsum.photos/seed/route2/800/600", poiIds:["poi_1", "poi_2", "poi_3"] },
+    { id: "1", title: "NOTION未配置 (测试数据)", distance: 2140, tags: ["进藏"], season: ["夏", "秋"], status: "开放", cover: "https://picsum.photos/seed/route1/800/600", routeSequence: [] },
+    { id: "2", title: "川藏南线 G318", distance: 2755, tags: ["极致风光", "高难度"], season: ["春", "夏"], status: "部分封路", cover: "https://picsum.photos/seed/route2/800/600", routeSequence: ["S001", "D001", "D002"] },
   ];
 }
 
@@ -265,8 +301,8 @@ async function getMockPOIs(): Promise<POIData[]> {
   return [
     {
       id: "poi_1",
+      poiId: "S001",
       title: "折多山垭口",
-      routeIds: ["g318", "2", "all"],
       type: "垭口",
       sequence: 1,
       coordinates: "30.078,101.801",
@@ -278,9 +314,9 @@ async function getMockPOIs(): Promise<POIData[]> {
     },
     {
       id: "poi_2",
+      poiId: "D001",
       title: "新都桥",
-      routeIds: ["g318", "2", "all"],
-      type: "景点",
+      type: "地点",
       sequence: 2,
       coordinates: "29.873,101.503",
       roadStatus: "畅通",
@@ -291,8 +327,8 @@ async function getMockPOIs(): Promise<POIData[]> {
     },
     {
       id: "poi_3",
+      poiId: "D002",
       title: "理塘高城",
-      routeIds: ["g318", "2", "all"],
       type: "驿站",
       sequence: 3,
       coordinates: "29.996,100.270",

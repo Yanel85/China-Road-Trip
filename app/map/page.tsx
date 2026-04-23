@@ -12,9 +12,10 @@ export default async function ExploreMapPage() {
 
   // Group POIs by route to draw separate lines
   const multiRoutesPoisConfig = routes.map(route => {
+    // line drawing only needs valid D and S structural points inside `routeSequence`
     const pois = allPois
-      .filter(poi => poi.routeIds.includes(route.id) || (route.notionId && poi.routeIds.includes(route.notionId)) || poi.routeIds.includes('all'))
-      .sort((a, b) => a.sequence - b.sequence);
+      .filter(poi => route.routeSequence?.includes(poi.poiId) && (poi.type === '地点' || poi.type === '垭口') && typeof poi.altitude === 'number')
+      .sort((a, b) => (route.routeSequence || []).indexOf(a.poiId) - (route.routeSequence || []).indexOf(b.poiId));
     return { routeId: route.id, pois };
   }).filter(item => item.pois.length > 0);
 

@@ -62,16 +62,6 @@ export default function ExploreMapClient({
         isExpanded={false}
         showRoutes={visibleMultiRoutesPois.length > 0} // Show lines if there are visible routes
         minScale={0.7}
-        onViewRoute={(routeIds) => {
-          if (routeIds.length > 0) {
-            // Find the first valid route ID (translate from Notion ID if necessary)
-            const rid = routeIds.find(id => id !== "all");
-            if (rid) {
-               const localId = routesMapping[rid] || rid;
-               router.push(`/route/${localId}`);
-            }
-          }
-        }}
       />
       
       {/* Floating Panel for Favorites */}

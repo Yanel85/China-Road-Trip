@@ -51,19 +51,32 @@ export default function RouteInteractiveLayout({ route, pois }: { route: any; po
   const sortedPois = [...pois].sort((a, b) => {
     let diff = 0;
     if (sortBy === 'sequence') {
-      diff = a.sequence - b.sequence;
+      // Logic for new sequence: 
+      // If it's a structural point in routeSequence, use its index 
+      // Otherwise, assume it's an extraneous point (like scenic spot) and push it below (e.g. 1000 + its db sequence)
+      const getSeqVal = (poi: any) => {
+        if (route.routeSequence) {
+          const idx = route.routeSequence.findIndex((id: string) => id === poi.poiId);
+          if (idx !== -1) return idx;
+        }
+        return 1000 + (poi.sequence || 999);
+      };
+      
+      const aSeq = getSeqVal(a);
+      const bSeq = getSeqVal(b);
+      diff = aSeq - bSeq;
     } else if (sortBy === 'altitude') {
-      diff = a.altitude - b.altitude;
+      diff = (a.altitude || 0) - (b.altitude || 0);
     } else if (sortBy === 'roadStatus') {
       diff = (statusScore[a.roadStatus] ?? 0) - (statusScore[b.roadStatus] ?? 0);
     }
     return sortAsc ? diff : -diff;
   });
 
-  // Calculate Altitude Chart Data: Exclude '景点', include start, end, highest, lowest, total 5-16 points
+  // Calculate Altitude Chart Data: Exclude '景点', include start, end, highest, lowest, total 5-18 points
   const validChartPois = [...pois]
-    .filter(p => (p.type === '地点' || p.type === '垭口') && typeof p.altitude === 'number')
-    .sort((a, b) => a.sequence - b.sequence);
+    .filter(p => route.routeSequence?.includes(p.poiId) && (p.type === '地点' || p.type === '垭口') && typeof p.altitude === 'number')
+    .sort((a, b) => route.routeSequence.indexOf(a.poiId) - route.routeSequence.indexOf(b.poiId));
 
   let chartPois: any[] = [];
   
@@ -98,13 +111,18 @@ export default function RouteInteractiveLayout({ route, pois }: { route: any; po
       }
     }
 
-    chartPois = selectedPois.sort((a, b) => a.sequence - b.sequence);
+    chartPois = selectedPois.sort((a, b) => route.routeSequence.indexOf(a.poiId) - route.routeSequence.indexOf(b.poiId));
   }
 
   const altitudeChartData = chartPois.map(p => ({ 
     name: p.title, 
     altitude: p.altitude || 0 
   }));
+
+  // Create explicit path points array
+  const pathPoints = [...pois]
+    .filter(p => route.routeSequence?.includes(p.poiId) && (p.type === '地点' || p.type === '垭口'))
+    .sort((a, b) => route.routeSequence.indexOf(a.poiId) - route.routeSequence.indexOf(b.poiId));
 
   return (
     <div className="relative h-[100dvh] w-full bg-gray-100 overflow-hidden">
@@ -117,6 +135,7 @@ export default function RouteInteractiveLayout({ route, pois }: { route: any; po
       >
         <MapView 
           pois={pois} 
+          multiRoutesPois={[pathPoints]}
           isExpanded={isExpanded} 
           setIsExpanded={setIsExpanded} 
           selectedPOI={selectedPOI}

@@ -9,18 +9,18 @@ export interface RouteData {
   tags: string[]; // 标签：#进藏、#极致风光、#高难度
   season: string[]; // 最佳季节：春夏秋冬
   status: RouteStatus;
-  poiIds: string[]; // 关联下方的“点位从表”
+  routeSequence?: string[]; // 基于文本字段的直接POI次序
 }
 
-export type POIType = '景点' | '垭口' | '加油站' | '检修点' | '宿营地' | string;
+export type POIType = '景点' | '垭口' | '打卡点' | '地点' | '宿营地' | string;
 export type RoadStatus = '畅通' | '拥堵' | '封路' | string;
 
 export interface POIData {
   id: string;
+  poiId: string; // 自定义点位ID（如 D0163）
   title: string; // 点位名称
-  routeIds: string[]; // 关联回“线路主表”
   type: POIType; // 分类
-  sequence: number; // 排序权重。前端根据此数字从小到大排列行程顺序
+  sequence: number; // 权重。
   coordinates: string; // "坐标（如 30.012, 101.123），用于唤起地图导航"
   roadStatus: RoadStatus; // 实时路况： 畅通（绿）、拥堵（黄）、封路（红）
   liveUpdate?: string; // 该点位最后一次手动更新路况的时间

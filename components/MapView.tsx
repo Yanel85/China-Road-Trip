@@ -110,8 +110,7 @@ export default function MapView({
   selectedPOI: propSelectedPOI,
   setSelectedPOI: propSetSelectedPOI,
   showRoutes = true,
-  minScale = 1.5,
-  onViewRoute
+  minScale = 1.5
 }: { 
   pois?: POIData[], 
   multiRoutesPois?: POIData[][],
@@ -120,8 +119,7 @@ export default function MapView({
   selectedPOI?: POIData | null,
   setSelectedPOI?: (v: POIData | null) => void,
   showRoutes?: boolean,
-  minScale?: number,
-  onViewRoute?: (routeIds: string[]) => void
+  minScale?: number
 }) {
   const [localSelectedPOI, setLocalSelectedPOI] = useState<POIData | null>(null);
   const selectedPOI = propSelectedPOI !== undefined ? propSelectedPOI : localSelectedPOI;
@@ -178,8 +176,6 @@ export default function MapView({
     
     return rawRoutes.map(routePois => {
       const points = [...routePois]
-        .filter(poi => poi.type === '地点' || poi.type === '垭口')
-        .sort((a, b) => a.sequence - b.sequence)
         // ensure lat/lng are properly set if passed from validPois, if multiRoutesPois is used we need to compute pos
         .map(poi => {
            let lat = NaN, lng = NaN;
@@ -411,17 +407,6 @@ export default function MapView({
               <p className="text-xs text-gray-600 leading-relaxed mb-4 line-clamp-3">{selectedPOI.description || '暂无点位描述信息'}</p>
 
               <div className="flex space-x-2">
-                {onViewRoute && selectedPOI.routeIds?.length > 0 && (
-                  <button 
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onViewRoute(selectedPOI.routeIds);
-                    }}
-                    className="flex-[0.6] flex items-center justify-center px-3 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
-                  >
-                    查看相关线路
-                  </button>
-                )}
                 <button 
                   onClick={(e) => {
                     e.stopPropagation();
@@ -456,10 +441,10 @@ export default function MapView({
                       }
                     }
                   }}
-                  className={`${onViewRoute && selectedPOI.routeIds?.length > 0 ? 'flex-[0.4]' : 'flex-1'} flex items-center justify-center px-4 py-2 bg-brand text-white text-sm font-medium rounded-lg hover:bg-brand/90 transition-colors`}
+                  className="flex-1 flex items-center justify-center px-4 py-2 bg-brand text-white text-sm font-medium rounded-lg hover:bg-brand/90 transition-colors"
                 >
-                  <Navigation size={16} className={onViewRoute && selectedPOI.routeIds?.length > 0 ? "mr-1" : "mr-1.5"} />
-                  {onViewRoute && selectedPOI.routeIds?.length > 0 ? "导航" : "导航去这"}
+                  <Navigation size={16} className="mr-1.5" />
+                  导航去这
                 </button>
               </div>
             </div>

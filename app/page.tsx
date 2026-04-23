@@ -50,6 +50,46 @@ async function RouteList({ routes, query, tag }: { routes: RouteData[], query?: 
     );
   }
 
+  // Define current season
+  const getCurrentSeason = () => {
+    // Note: getMonth is 0-indexed. March is 2, April is 3...
+    const month = new Date().getMonth() + 1;
+    if (month >= 3 && month <= 5) return '春';
+    if (month >= 6 && month <= 8) return '夏';
+    if (month >= 9 && month <= 11) return '秋';
+    return '冬';
+  };
+  const currentSeason = getCurrentSeason();
+
+  // Status scoring
+  const getStatusScore = (status: string) => {
+    if (status.includes('开放') || status.includes('畅通') || status.toLowerCase().includes('clear')) return 0;
+    if (status.includes('封') || status.includes('封闭') || status.includes('封路')) return 2;
+    return 1; // partially open or other
+  };
+
+  filteredRoutes = [...filteredRoutes].sort((a, b) => {
+    const aHasSeason = a.season.includes(currentSeason) ? 1 : 0;
+    const bHasSeason = b.season.includes(currentSeason) ? 1 : 0;
+    
+    // Criterion 1: Season Match
+    if (aHasSeason !== bHasSeason) {
+      return bHasSeason - aHasSeason;
+    }
+
+    // Criterion 2: Distance (from Long to Short)
+    if (a.distance !== b.distance) {
+      return (b.distance || 0) - (a.distance || 0);
+    }
+
+    const aStatus = getStatusScore(a.status);
+    const bStatus = getStatusScore(b.status);
+
+    // Criterion 3: Status (Open -> Partial -> Closed)
+    // To ensure "开放排前，封闭排最后"
+    return aStatus - bStatus;
+  });
+
   return (
     <div className="px-5 space-y-4 pb-10">
       {filteredRoutes.map((route) => (
