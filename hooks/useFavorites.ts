@@ -10,24 +10,37 @@ export function useFavorites() {
         setFavorites(JSON.parse(stored));
       } catch (e) {}
     }
+
+    const handleUpdate = (e: any) => {
+      setFavorites(e.detail);
+    };
+    window.addEventListener('favoritesUpdated', handleUpdate);
+    return () => window.removeEventListener('favoritesUpdated', handleUpdate);
   }, []);
 
   const toggleFavorite = (id: string) => {
-    setFavorites(prev => {
-      // If already has, remove it
-      if (prev.includes(id)) {
-        const next = prev.filter(fv => fv !== id);
-        localStorage.setItem('route_favorites', JSON.stringify(next));
-        return next;
-      }
-      // If not, add to the front (latest)
-      let next = [id, ...prev];
+    // read latest from storage to prevent multiple hook instances from overriding each other
+    const stored = localStorage.getItem('route_favorites');
+    let currentFavorites: string[] = [];
+    if (stored) {
+      try {
+        currentFavorites = JSON.parse(stored);
+      } catch (e) {}
+    }
+
+    let next: string[];
+    if (currentFavorites.includes(id)) {
+      next = currentFavorites.filter(fv => fv !== id);
+    } else {
+      next = [id, ...currentFavorites];
       if (next.length > 6) {
         next = next.slice(0, 6);
       }
-      localStorage.setItem('route_favorites', JSON.stringify(next));
-      return next;
-    });
+    }
+
+    localStorage.setItem('route_favorites', JSON.stringify(next));
+    setFavorites(next);
+    window.dispatchEvent(new CustomEvent('favoritesUpdated', { detail: next }));
   };
 
   return { favorites, toggleFavorite };
