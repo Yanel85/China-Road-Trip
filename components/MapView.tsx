@@ -34,7 +34,7 @@ const AutoZoomController = ({ bounds }: { bounds: { x: number, y: number, w: num
   );
 };
 
-const MapMarkers = ({ finalRenderPois, selectedPOI, setSelectedPOI, isExpanded }: any) => {
+const MapMarkers = ({ finalRenderPois, selectedPOI, setSelectedPOI, isExpanded, alwaysShowLabels }: any) => {
   const context = useTransformContext();
   const scale = (context as any)?.transformState?.scale || (context as any)?.state?.scale || 1;
   
@@ -82,11 +82,13 @@ const MapMarkers = ({ finalRenderPois, selectedPOI, setSelectedPOI, isExpanded }
             >
               <span 
                 className={`text-[10px] px-1.5 py-0.5 rounded mb-0.5 font-bold transition-all shadow-sm whitespace-nowrap border border-white/50
-                  ${selectedPOI?.id === poi.id 
-                    ? 'bg-brand text-white opacity-100 translate-y-0' 
+                  ${alwaysShowLabels || selectedPOI?.id === poi.id 
+                    ? 'bg-white text-gray-800 opacity-100 translate-y-0' 
                     : !isExpanded
                       ? 'bg-white/95 text-gray-800 opacity-100 translate-y-0'
-                      : 'bg-white text-gray-800 opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0'}`}
+                      : 'bg-white text-gray-800 opacity-0 group-hover:opacity-100 translate-y-1 group-hover:translate-y-0'}
+                  ${selectedPOI?.id === poi.id ? 'bg-brand text-white' : ''}
+                `}
               >
                 {poi.title}
               </span>
@@ -113,7 +115,8 @@ export default function MapView({
   minScale = 1.5,
   hideFilter = false,
   selectedType: propSelectedType,
-  onTypeChange: propOnTypeChange
+  onTypeChange: propOnTypeChange,
+  alwaysShowLabels = false
 }: { 
   pois?: POIData[], 
   multiRoutesPois?: POIData[][],
@@ -125,7 +128,8 @@ export default function MapView({
   minScale?: number,
   hideFilter?: boolean,
   selectedType?: string,
-  onTypeChange?: (v: string) => void
+  onTypeChange?: (v: string) => void,
+  alwaysShowLabels?: boolean
 }) {
   const [localSelectedPOI, setLocalSelectedPOI] = useState<POIData | null>(null);
   const selectedPOI = propSelectedPOI !== undefined ? propSelectedPOI : localSelectedPOI;
@@ -358,6 +362,7 @@ export default function MapView({
                selectedPOI={selectedPOI} 
                setSelectedPOI={setSelectedPOI} 
                isExpanded={isExpanded} 
+               alwaysShowLabels={alwaysShowLabels}
             />
           </div>
         </TransformComponent>

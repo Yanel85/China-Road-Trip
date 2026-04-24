@@ -146,8 +146,6 @@ export default function ResponsiveHome({
               <span className="text-sm font-bold tracking-wide">大地图</span>
             </Link>
           </div>
-
-          <CustomRouteCreator />
         </div>
       </div>
     );
@@ -224,12 +222,15 @@ export default function ResponsiveHome({
       <div className="flex-1 relative bg-gray-100">
         <div className="absolute inset-0 z-0">
           <MapView 
-            pois={pois} 
-            multiRoutesPois={selectedRouteId ? undefined : defaultMultiPois}
+            pois={selectedRoute?.isCustom 
+              ? globalPois.filter(p => p.type === '地点' || p.type === '垭口' || pois.some(rp => rp.poiId === p.poiId))
+              : pois} 
+            multiRoutesPois={selectedRouteId ? [pois] : defaultMultiPois}
             showRoutes={true}
             hideFilter={true}
             selectedType={selectedPoiType}
             onTypeChange={setSelectedPoiType}
+            alwaysShowLabels={selectedRoute?.isCustom ?? false}
           />
         </div>
 
@@ -455,7 +456,7 @@ export default function ResponsiveHome({
         <div className="absolute top-6 left-6 z-10 flex gap-3 items-center pointer-events-auto">
            {pois.length > 0 && (
              <div className="flex gap-2 bg-white/80 backdrop-blur-md p-1.5 rounded-2xl shadow-lg border border-white/50 overflow-x-auto no-scrollbar max-w-[400px]">
-               {['全部', ...Array.from(new Set(pois.map(p => p.type).filter(Boolean)))].map(type => (
+               {['全部', ...Array.from(new Set((selectedRoute?.isCustom ? globalPois.filter(p => p.type === '地点' || p.type === '垭口' || pois.some(rp => rp.poiId === p.poiId)) : pois).map(p => p.type).filter(Boolean)))].map(type => (
                  <button
                    key={type}
                    onClick={() => setSelectedPoiType(type)}
