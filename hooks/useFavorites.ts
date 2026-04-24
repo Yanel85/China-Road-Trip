@@ -1,16 +1,18 @@
 import { useState, useEffect } from 'react';
 
 export function useFavorites() {
-  const [favorites, setFavorites] = useState<string[]>([]);
-
-  useEffect(() => {
+  const [favorites, setFavorites] = useState<string[]>(() => {
+    if (typeof window === 'undefined') return [];
     const stored = localStorage.getItem('route_favorites');
     if (stored) {
       try {
-        setFavorites(JSON.parse(stored));
+        return JSON.parse(stored);
       } catch (e) {}
     }
+    return [];
+  });
 
+  useEffect(() => {
     const handleUpdate = (e: any) => {
       setFavorites(e.detail);
     };

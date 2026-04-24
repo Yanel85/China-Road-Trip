@@ -10,6 +10,7 @@ export interface RouteData {
   season: string[]; // 最佳季节：春夏秋冬
   status: RouteStatus;
   routeSequence?: string[]; // 基于文本字段的直接POI次序
+  isCustom?: boolean; // 是否为用户自定义路线（本地存储）
 }
 
 export type POIType = '景点' | '垭口' | '打卡点' | '地点' | '宿营地' | string;

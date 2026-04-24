@@ -110,7 +110,10 @@ export default function MapView({
   selectedPOI: propSelectedPOI,
   setSelectedPOI: propSetSelectedPOI,
   showRoutes = true,
-  minScale = 1.5
+  minScale = 1.5,
+  hideFilter = false,
+  selectedType: propSelectedType,
+  onTypeChange: propOnTypeChange
 }: { 
   pois?: POIData[], 
   multiRoutesPois?: POIData[][],
@@ -119,16 +122,24 @@ export default function MapView({
   selectedPOI?: POIData | null,
   setSelectedPOI?: (v: POIData | null) => void,
   showRoutes?: boolean,
-  minScale?: number
+  minScale?: number,
+  hideFilter?: boolean,
+  selectedType?: string,
+  onTypeChange?: (v: string) => void
 }) {
   const [localSelectedPOI, setLocalSelectedPOI] = useState<POIData | null>(null);
   const selectedPOI = propSelectedPOI !== undefined ? propSelectedPOI : localSelectedPOI;
   const setSelectedPOI = propSetSelectedPOI || setLocalSelectedPOI;
 
-  const [selectedType, setSelectedType] = useState<string>('全部');
+  const [localSelectedType, setLocalSelectedType] = useState<string>('全部');
+  const selectedType = propSelectedType !== undefined ? propSelectedType : localSelectedType;
+  const setSelectedType = propOnTypeChange || setLocalSelectedType;
 
   const poiTypes = useMemo(() => ['全部', ...Array.from(new Set(pois.map(p => p.type).filter(Boolean)))], [pois]);
   const filteredPOIs = useMemo(() => selectedType === '全部' ? pois : pois.filter(p => p.type === selectedType), [pois, selectedType]);
+
+  // Handle auto-centering to a default location if no POIs are present (Center of China area)
+  const defaultChinaCenter = useMemo(() => ({ x: 500, y: 400, w: 400, h: 300 }), []);
 
   // Deselect when clicking the background
   const handleMapClick = (e: React.MouseEvent) => {
@@ -170,9 +181,17 @@ export default function MapView({
   }, []);
 
   const multiPaths = useMemo(() => {
-    // If multiRoutesPois is explicitly passed (e.g. from ExploreMapClient), use it directly even if empty.
-    // If undefined (e.g. from single route page), fallback to [validPois].
-    const rawRoutes = multiRoutesPois !== undefined ? multiRoutesPois : [validPois];
+    // ONLY draw paths if explicitly requested via multiRoutesPois
+    // If multiRoutesPois is undefined, we draw ONE path if showRoutes is true AND validPois is not too many (heuristic for single route)
+    // Actually, on Home page, we want showRoutes but we don't want it to connect all global points.
+    
+    // Heuristic: If multiRoutesPois is given, obey it. 
+    // If not, only draw a path if there is a reasonable number of points (e.g. < 50) and showRoutes is true.
+    const isSingleRoute = validPois.length > 0 && validPois.length < 50;
+
+    const rawRoutes = multiRoutesPois !== undefined 
+      ? multiRoutesPois 
+      : (showRoutes && isSingleRoute ? [validPois] : []);
     
     return rawRoutes.map(routePois => {
       const points = [...routePois]
@@ -213,7 +232,7 @@ export default function MapView({
       }
       return { d, points };
     });
-  }, [multiRoutesPois, validPois, getPosition]);
+  }, [multiRoutesPois, validPois, getPosition, showRoutes]);
 
   const routeBounds = useMemo(() => {
     let routeMinX = Infinity, routeMaxX = -Infinity;
@@ -231,15 +250,17 @@ export default function MapView({
             if (p.y < routeMinY) routeMinY = p.y;
             if (p.y > routeMaxY) routeMaxY = p.y;
         });
+        
+        return {
+          x: routeMinX,
+          y: routeMinY,
+          w: routeMaxX - routeMinX,
+          h: routeMaxY - routeMinY
+        };
     }
     
-    return {
-      x: routeMinX === Infinity ? 0 : routeMinX,
-      y: routeMinY === Infinity ? 0 : routeMinY,
-      w: routeMinX === Infinity ? 0 : routeMaxX - routeMinX,
-      h: routeMinY === Infinity ? 0 : routeMaxY - routeMinY
-    };
-  }, [multiPaths, validPois, getPosition]);
+    return defaultChinaCenter;
+  }, [multiPaths, validPois, getPosition, defaultChinaCenter]);
 
   const finalRenderPois = useMemo(() => 
     filteredPOIs.map(poi => {
@@ -270,7 +291,7 @@ export default function MapView({
       onClick={handleMapClick}
     >
       {/* POI Type Filter */}
-      {poiTypes.length > 1 && (
+      {!hideFilter && poiTypes.length > 1 && (
         <div className="absolute top-5 left-4 right-4 z-30 flex gap-2 overflow-x-auto no-scrollbar pointer-events-auto pb-2">
           {poiTypes.map(type => (
             <button
@@ -289,10 +310,10 @@ export default function MapView({
       )}
 
       <TransformWrapper 
-         initialScale={5}
+         initialScale={1.5}
          minScale={minScale}
          maxScale={50}
-         centerOnInit={false}
+         centerOnInit={true}
          wheel={{ step: 1 }}
          zoomAnimation={{ animationType: "easeOut", animationTime: 350 }}
       >
@@ -394,7 +415,7 @@ export default function MapView({
                   <h3 className="font-bold text-base text-gray-900 leading-tight truncate">{selectedPOI.title}</h3>
                   {selectedPOI.altitude > 0 && (
                     <span className="text-[10px] font-semibold bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded flex-shrink-0">
-                      {selectedPOI.altitude}m
+                      ALT:{selectedPOI.altitude}m
                     </span>
                   )}
                 </div>

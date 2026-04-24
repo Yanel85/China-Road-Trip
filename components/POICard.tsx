@@ -22,7 +22,7 @@ export default function POICard({ data }: { data: POIData }) {
         <div className="grid grid-cols-3 gap-2 bg-gray-50/80 backdrop-blur-md p-4 rounded-20 shadow-sm border border-gray-100">
           <div className="flex flex-col items-center justify-center border-r border-gray-200/60 last:border-0">
             <span className="text-[10px] text-gray-400">海拔</span>
-            <span className="font-semibold text-gray-800 text-sm mt-1">{data.altitude ? `${data.altitude}m` : '-'}</span>
+            <span className="font-semibold text-gray-800 text-sm mt-1">{data.altitude ? `ALT ${data.altitude}m` : '-'}</span>
           </div>
           <div className="flex flex-col items-center justify-center border-r border-gray-200/60 last:border-0">
             <span className="text-[10px] text-gray-400">分类</span>

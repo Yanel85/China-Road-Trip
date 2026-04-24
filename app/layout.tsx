@@ -13,8 +13,8 @@ export default function RootLayout({
 }) {
   return (
     <html lang="zh" suppressHydrationWarning>
-      <body className="font-sans text-gray-900 bg-gray-900 antialiased">
-        <main className="max-w-[480px] mx-auto min-h-screen bg-background relative overflow-hidden shadow-2xl">
+      <body className="font-sans text-gray-900 bg-gray-950 antialiased overflow-x-hidden">
+        <main className="min-h-screen bg-background relative shadow-2xl">
           {children}
         </main>
       </body>
