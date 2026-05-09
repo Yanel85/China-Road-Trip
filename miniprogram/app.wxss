@@ -44,3 +44,7 @@ page {
 .shadow-sheet { box-shadow: var(--shadow-sheet); }
 
 .rounded-20 { border-radius: var(--radius-20); }
+
+/* 隐藏滚动条 */
+::-webkit-scrollbar { display: none; }
+page { -ms-overflow-style: none; scrollbar-width: none; }
