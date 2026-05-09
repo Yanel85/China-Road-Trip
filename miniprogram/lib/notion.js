@@ -1,84 +1,85 @@
 /**
- * Notion 数据获取 - 对应原项目 lib/notion.ts
- * 在小程序中通过云函数调用
+ * 数据获取 - 通过 HTTP API 获取路线和 POI 数据
  */
 
+const BASE_URL = 'https://chinaroadtrip.xwabc.cn/api';
 const CACHE_TTL = 60 * 1000; // 1分钟缓存
 
 let routesCache = null;
 let poisCache = null;
 
+function request(url) {
+  return new Promise((resolve, reject) => {
+    wx.request({
+      url,
+      success: (res) => {
+        if (res.statusCode === 200) {
+          resolve(res.data);
+        } else {
+          reject(new Error(`HTTP ${res.statusCode}`));
+        }
+      },
+      fail: (err) => {
+        reject(err);
+      },
+    });
+  });
+}
+
 /**
  * 获取所有路线
  */
 function getRoutes() {
-  return new Promise((resolve, reject) => {
-    const now = Date.now();
-    if (routesCache && now - routesCache.timestamp < CACHE_TTL) {
-      return resolve(routesCache.data);
-    }
+  const now = Date.now();
+  if (routesCache && now - routesCache.timestamp < CACHE_TTL) {
+    return Promise.resolve(routesCache.data);
+  }
 
-    wx.cloud.callFunction({
-      name: 'getRoutes',
-      success: (res) => {
-        const data = res.result && res.result.data ? res.result.data : res.result;
-        routesCache = { data: data || [], timestamp: Date.now() };
-        resolve(data || []);
-      },
-      fail: (err) => {
-        console.error('Failed to fetch routes:', err);
-        // 使用 mock 数据作为兜底
-        resolve(getMockRoutes());
-      },
+  return request(`${BASE_URL}/routes`)
+    .then((data) => {
+      routesCache = { data: data || [], timestamp: Date.now() };
+      return data || [];
+    })
+    .catch((err) => {
+      console.error('Failed to fetch routes:', err);
+      return getMockRoutes();
     });
-  });
 }
 
 /**
  * 获取所有 POI
  */
 function getAllPOIs() {
-  return new Promise((resolve, reject) => {
-    const now = Date.now();
-    if (poisCache && now - poisCache.timestamp < CACHE_TTL) {
-      return resolve(poisCache.data);
-    }
+  const now = Date.now();
+  if (poisCache && now - poisCache.timestamp < CACHE_TTL) {
+    return Promise.resolve(poisCache.data);
+  }
 
-    wx.cloud.callFunction({
-      name: 'getPOIs',
-      success: (res) => {
-        const data = res.result && res.result.data ? res.result.data : res.result;
-        poisCache = { data: data || [], timestamp: Date.now() };
-        resolve(data || []);
-      },
-      fail: (err) => {
-        console.error('Failed to fetch POIs:', err);
-        resolve(getMockPOIs());
-      },
+  return request(`${BASE_URL}/pois`)
+    .then((data) => {
+      poisCache = { data: data || [], timestamp: Date.now() };
+      return data || [];
+    })
+    .catch((err) => {
+      console.error('Failed to fetch POIs:', err);
+      return getMockPOIs();
     });
-  });
 }
 
 /**
  * 根据 ID 获取路线
  */
 function getRouteById(id) {
-  return getRoutes().then((routes) => routes.find((r) => r.id === id) || null);
+  return getRoutes().then((routes) => routes.find((r) => String(r.id) === String(id)) || null);
 }
 
 /**
- * 获取路线的 POI 列表
+ * 获取指定路线的 POI 列表
  */
-function getRoutePOIs(routeId, routeSequence) {
-  return getAllPOIs().then((allPois) => {
-    if (!routeSequence || routeSequence.length === 0) return [];
-
-    const structuralPois = allPois.filter((poi) => routeSequence.includes(poi.poiId));
-    structuralPois.sort(
-      (a, b) => routeSequence.indexOf(a.poiId) - routeSequence.indexOf(b.poiId)
-    );
-
-    return structuralPois;
+function getRoutePOIs(routeId) {
+  return request(`${BASE_URL}/routes/${routeId}/pois`).catch((err) => {
+    console.error('Failed to fetch route POIs:', err);
+    return [];
   });
 }
 
@@ -87,7 +88,7 @@ function getMockRoutes() {
   return [
     {
       id: '1',
-      title: 'NOTION未配置 (测试数据)',
+      title: 'API未配置 (测试数据)',
       distance: 2140,
       tags: ['进藏'],
       season: ['夏', '秋'],

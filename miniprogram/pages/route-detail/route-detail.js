@@ -31,7 +31,7 @@ Page({
       let route = await getRouteById(id);
       let pois = [];
       if (route) {
-        pois = await getRoutePOIs(id, route.routeSequence);
+        pois = await getRoutePOIs(id);
       }
 
       if (!route) {
