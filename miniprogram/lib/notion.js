@@ -86,7 +86,8 @@ function getRouteById(id) {
  */
 function getRoutePOIs(routeId) {
   return request(`${BASE_URL}/routes/${routeId}/pois`).then((data) => {
-    return Array.isArray(data) ? data : [];
+    const all = Array.isArray(data) ? data : [];
+    return all.filter((p) => p.type === '地点' || p.type === '垭口');
   }).catch((err) => {
     console.error('Failed to fetch route POIs:', err);
     return [];
