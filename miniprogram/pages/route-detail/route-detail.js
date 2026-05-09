@@ -41,9 +41,13 @@ Page({
         return;
       }
 
-      // 构建路线 polyline - 只连线地点和垭口，忽略景区
-      const points = pois
-        .filter((p) => (p.type === '地点' || p.type === '垭口') && p.coordinates && p.coordinates.includes(','))
+      // 构建路线 polyline - 按 routeSequence 顺序，只连线线路上的地点和垭口
+      const routePoiIds = route.routeSequence || [];
+      const routePoisMap = {};
+      pois.forEach((p) => { routePoisMap[p.poiId] = p; });
+      const points = routePoiIds
+        .map((poiId) => routePoisMap[poiId])
+        .filter((p) => p && p.coordinates && p.coordinates.includes(','))
         .map((p) => {
           const coords = parseCoordinates(p.coordinates);
           return coords ? { latitude: coords[0], longitude: coords[1] } : null;
