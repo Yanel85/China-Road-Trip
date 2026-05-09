@@ -22,7 +22,7 @@
 
   <!-- 路线列表 -->
   <view class="route-list" wx:if="{{!loading}}">
-    <block wx:for="{{getFilteredRoutes()}}" wx:key="id">
+    <block wx:for="{{filteredRoutes}}" wx:key="id">
       <view class="route-item" data-id="{{item.id}}" bindtap="onRouteTap">
         <route-card data="{{item}}" is-favorited="{{favorites.indexOf(item.id) > -1}}" />
         <!-- 删除按钮（仅自定义路线） -->
@@ -38,7 +38,7 @@
     </block>
 
     <!-- 空状态 -->
-    <view class="empty-state" wx:if="{{getFilteredRoutes().length === 0}}">
+    <view class="empty-state" wx:if="{{filteredRoutes.length === 0}}">
       <text class="empty-text">没有找到相关的匹配结果</text>
     </view>
   </view>

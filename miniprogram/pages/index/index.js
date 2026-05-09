@@ -11,6 +11,7 @@ Page({
     selectedTag: '',
     query: '',
     loading: true,
+    filteredRoutes: [],
   },
 
   onLoad() {
@@ -18,7 +19,6 @@ Page({
   },
 
   onShow() {
-    // 每次显示时刷新本地数据（自定义路线可能已更改）
     this.refreshLocalData();
   },
 
@@ -41,6 +41,8 @@ Page({
         allTags,
         allAvailable,
         loading: false,
+      }, () => {
+        this.updateFilteredRoutes();
       });
     } catch (err) {
       console.error('Failed to load data:', err);
@@ -52,25 +54,12 @@ Page({
     const localRoutes = getLocalRoutes();
     const favorites = getFavorites();
     const allAvailable = [...localRoutes, ...(this.data.routes || [])];
-    this.setData({ localRoutes, favorites, allAvailable });
-  },
-
-  // 搜索
-  onSearchInput(e) {
-    const query = e.detail.value;
-    this.setData({ query });
-  },
-
-  // 标签筛选
-  onTagTap(e) {
-    const tag = e.currentTarget.dataset.tag;
-    this.setData({
-      selectedTag: this.data.selectedTag === tag ? '' : tag,
+    this.setData({ localRoutes, favorites, allAvailable }, () => {
+      this.updateFilteredRoutes();
     });
   },
 
-  // 获取筛选后的路线
-  getFilteredRoutes() {
+  updateFilteredRoutes() {
     let filtered = [...(this.data.allAvailable || [])];
 
     if (this.data.query) {
@@ -79,10 +68,9 @@ Page({
     }
 
     if (this.data.selectedTag && this.data.selectedTag !== '全部') {
-      filtered = filtered.filter((r) => r.tags.includes(this.data.selectedTag));
+      filtered = filtered.filter((r) => r.tags && r.tags.includes(this.data.selectedTag));
     }
 
-    // 排序：自定义路线优先，然后按季节匹配度、距离、状态
     const custom = filtered.filter((r) => r.isCustom);
     custom.sort((a, b) => b.id.localeCompare(a.id));
 
@@ -91,23 +79,37 @@ Page({
 
     const getStatusScore = (status) => {
       if (status.includes('开放') || status.includes('畅通')) return 0;
-      if (status.includes('封') || status.includes('封闭') || status.includes('封路'))
-        return 2;
+      if (status.includes('封') || status.includes('封闭') || status.includes('封路')) return 2;
       return 1;
     };
 
     regular.sort((a, b) => {
-      const aHasSeason = a.season.includes(currentSeason) ? 1 : 0;
-      const bHasSeason = b.season.includes(currentSeason) ? 1 : 0;
+      const aHasSeason = a.season && a.season.includes(currentSeason) ? 1 : 0;
+      const bHasSeason = b.season && b.season.includes(currentSeason) ? 1 : 0;
       if (aHasSeason !== bHasSeason) return bHasSeason - aHasSeason;
       if (a.distance !== b.distance) return (b.distance || 0) - (a.distance || 0);
       return getStatusScore(a.status) - getStatusScore(b.status);
     });
 
-    return [...custom, ...regular];
+    this.setData({ filteredRoutes: [...custom, ...regular] });
   },
 
-  // 路线卡片点击
+  onSearchInput(e) {
+    const query = e.detail.value;
+    this.setData({ query }, () => {
+      this.updateFilteredRoutes();
+    });
+  },
+
+  onTagTap(e) {
+    const tag = e.currentTarget.dataset.tag;
+    this.setData({
+      selectedTag: this.data.selectedTag === tag ? '' : tag,
+    }, () => {
+      this.updateFilteredRoutes();
+    });
+  },
+
   onRouteTap(e) {
     const id = e.currentTarget.dataset.id;
     wx.navigateTo({
@@ -115,7 +117,6 @@ Page({
     });
   },
 
-  // 删除自定义路线
   onDeleteRoute(e) {
     const id = e.currentTarget.dataset.id;
     wx.showModal({
@@ -124,14 +125,40 @@ Page({
       success: (res) => {
         if (res.confirm) {
           const { deleteLocalRoute } = require('../../utils/storage');
-          const updated = deleteLocalRoute(id);
+          deleteLocalRoute(id);
           this.refreshLocalData();
         }
       },
     });
   },
 
-  // 下拉刷新
+  onCreateRoute() {
+    wx.showModal({
+      title: '创建自定义路线',
+      editable: true,
+      placeholderText: '请输入路线名称',
+      success: (res) => {
+        if (res.confirm && res.content && res.content.trim()) {
+          const { saveLocalRoute } = require('../../utils/storage');
+          const newRoute = {
+            id: 'custom_' + Date.now(),
+            title: res.content.trim(),
+            distance: 0,
+            tags: [],
+            season: [],
+            status: '自定义',
+            cover: 'https://picsum.photos/seed/custom/800/600',
+            routeSequence: [],
+            isCustom: true,
+          };
+          saveLocalRoute(newRoute);
+          this.refreshLocalData();
+          wx.showToast({ title: '路线已创建', icon: 'success' });
+        }
+      },
+    });
+  },
+
   onPullDownRefresh() {
     this.loadData().then(() => wx.stopPullDownRefresh());
   },
