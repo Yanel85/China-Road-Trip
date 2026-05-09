@@ -32,7 +32,7 @@ Page({
       let route = null;
       let pois = [];
 
-      if (id.startsWith('custom-')) {
+      if (id.startsWith('custom_')) {
         route = findLocalRoute(id);
         if (route) {
           const allPois = await getAllPOIs();
