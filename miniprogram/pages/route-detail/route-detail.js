@@ -40,9 +40,9 @@ Page({
         return;
       }
 
-      // 构建路线 polyline
+      // 构建路线 polyline - 只连线地点和垭口，忽略景区
       const points = pois
-        .filter((p) => p.coordinates && p.coordinates.includes(','))
+        .filter((p) => (p.type === '地点' || p.type === '垭口') && p.coordinates && p.coordinates.includes(','))
         .map((p) => {
           const coords = parseCoordinates(p.coordinates);
           return coords ? { latitude: coords[0], longitude: coords[1] } : null;
