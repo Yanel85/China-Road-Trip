@@ -37,8 +37,16 @@ function getRoutes() {
 
   return request(`${BASE_URL}/routes`)
     .then((data) => {
-      routesCache = { data: data || [], timestamp: Date.now() };
-      return data || [];
+      const routes = Array.isArray(data) ? data : [];
+      routes.forEach((r) => {
+        if (r.season && typeof r.season === 'string') {
+          r.season = r.season.split(/[,，、]/).map((s) => s.trim()).filter(Boolean);
+        }
+        if (!Array.isArray(r.season)) r.season = [];
+        if (!Array.isArray(r.tags)) r.tags = [];
+      });
+      routesCache = { data: routes, timestamp: Date.now() };
+      return routes;
     })
     .catch((err) => {
       console.error('Failed to fetch routes:', err);
@@ -75,15 +83,13 @@ function getRouteById(id) {
 
 /**
  * 获取指定路线的 POI 列表
- * 根据 route.sequence 中的 poiId 从全量 POI 中过滤
  */
 function getRoutePOIs(routeId) {
-  return Promise.all([getRouteById(routeId), getAllPOIs()]).then(([route, allPois]) => {
-    if (!route || !route.routeSequence || route.routeSequence.length === 0) return [];
-    const sequence = route.routeSequence;
-    const filtered = allPois.filter((poi) => sequence.includes(poi.poiId));
-    filtered.sort((a, b) => sequence.indexOf(a.poiId) - sequence.indexOf(b.poiId));
-    return filtered;
+  return request(`${BASE_URL}/routes/${routeId}/pois`).then((data) => {
+    return Array.isArray(data) ? data : [];
+  }).catch((err) => {
+    console.error('Failed to fetch route POIs:', err);
+    return [];
   });
 }
 

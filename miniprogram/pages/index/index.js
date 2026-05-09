@@ -99,6 +99,19 @@ Page({
     });
   },
 
+  onFavoriteChange(e) {
+    const { id, isFavorited } = e.detail;
+    let favorites = [...this.data.favorites];
+    if (isFavorited) {
+      if (!favorites.includes(id)) favorites.push(id);
+    } else {
+      favorites = favorites.filter((f) => f !== id);
+    }
+    this.setData({ favorites }, () => {
+      this.updateFilteredRoutes();
+    });
+  },
+
   onPullDownRefresh() {
     this.loadData().then(() => wx.stopPullDownRefresh());
   },

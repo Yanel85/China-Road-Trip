@@ -12,12 +12,9 @@
   margin-bottom: 8rpx;
 }
 
-.tags-scroll {
-  white-space: nowrap;
-}
-
 .tags-list {
-  display: inline-flex;
+  display: flex;
+  flex-wrap: wrap;
   gap: 12rpx;
   padding: 4rpx 0;
 }

@@ -34,9 +34,11 @@ Component({
         if (!res[0] || !res[0].node) return;
         const canvas = res[0].node;
         const ctx = canvas.getContext('2d');
-        const dpr = wx.getWindowInfo().pixelRatio;
+        let dpr = 2;
+        try { dpr = wx.getWindowInfo().pixelRatio; } catch (e) {}
         const width = res[0].width;
         const height = res[0].height;
+        if (!width || !height) return;
         canvas.width = width * dpr;
         canvas.height = height * dpr;
         ctx.scale(dpr, dpr);
@@ -59,9 +61,7 @@ Component({
 
       // 背景
       ctx.fillStyle = '#ffffff';
-      ctx.beginPath();
-      ctx.roundRect(0, 0, width, height, 16);
-      ctx.fill();
+      ctx.fillRect(0, 0, width, height);
 
       // 标题
       ctx.fillStyle = '#9ca3af';

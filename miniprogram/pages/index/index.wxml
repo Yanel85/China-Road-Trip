@@ -5,26 +5,24 @@
 
   <!-- 标签筛选 -->
   <view class="tags-section" wx:if="{{allTags.length > 0}}">
-    <scroll-view scroll-x class="tags-scroll">
-      <view class="tags-list">
-        <view
-          wx:for="{{allTags}}"
-          wx:key="*this"
-          class="tag-item {{selectedTag === item ? 'tag-active' : ''}}"
-          data-tag="{{item}}"
-          bindtap="onTagTap"
-        >
-          {{item}}
-        </view>
+    <view class="tags-list">
+      <view
+        wx:for="{{allTags}}"
+        wx:key="*this"
+        class="tag-item {{selectedTag === item ? 'tag-active' : ''}}"
+        data-tag="{{item}}"
+        bindtap="onTagTap"
+      >
+        {{item}}
       </view>
-    </scroll-view>
+    </view>
   </view>
 
   <!-- 路线列表 -->
   <view class="route-list" wx:if="{{!loading}}">
     <block wx:for="{{filteredRoutes}}" wx:key="id">
       <view class="route-item" data-id="{{item.id}}" bindtap="onRouteTap">
-        <route-card data="{{item}}" is-favorited="{{favorites.indexOf(item.id) > -1}}" />
+        <route-card data="{{item}}" is-favorited="{{favorites.indexOf(item.id) > -1}}" bindfavoritechange="onFavoriteChange" />
       </view>
     </block>
 

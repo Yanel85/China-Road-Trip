@@ -6,8 +6,6 @@
     latitude="{{latitude}}"
     longitude="{{longitude}}"
     scale="{{scale}}"
-    markers="{{mapMarkers}}"
-    bindmarkertap="onMarkerTap"
     enable-zoom
     enable-scroll
   >

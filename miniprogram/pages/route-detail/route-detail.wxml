@@ -8,7 +8,6 @@
       latitude="{{latitude}}"
       longitude="{{longitude}}"
       scale="{{scale}}"
-      markers="{{markers}}"
       polyline="{{polyline}}"
       enable-zoom
       enable-scroll
@@ -28,7 +27,7 @@
       <text class="route-title">{{route.title}}</text>
       <view class="route-meta">
         <text class="meta-text">里程: {{route.distance}}km</text>
-        <text class="meta-text" wx:if="{{route.season.length > 0}}"> · 适宜季节: {{route.season.join('/')}}</text>
+        <text class="meta-text" wx:if="{{route.season.length > 0}}"> · 适宜季节: {{seasonText}}</text>
         <view class="status-badge status-{{route.status.includes('开放') || route.status.includes('clear') ? 'open' : route.status.includes('封路') || route.status.includes('拥堵') ? 'warning' : 'danger'}}" wx:if="{{!(route.status.includes('开放') || route.status.includes('clear'))}}">
           {{route.status}}
         </view>

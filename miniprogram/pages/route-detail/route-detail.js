@@ -11,11 +11,12 @@ Page({
     isExpanded: true,
     selectedPOI: null,
     chartData: [],
+    seasonText: '',
     loading: true,
     latitude: 30.0,
     longitude: 101.0,
     scale: 6,
-    markers: [],
+
     polyline: [],
   },
 
@@ -38,32 +39,6 @@ Page({
         this.setData({ loading: false });
         return;
       }
-
-      // 构建地图标记和路线
-      const markers = pois
-        .filter((p) => p.coordinates && p.coordinates.includes(','))
-        .map((p, idx) => {
-          const coords = parseCoordinates(p.coordinates);
-          if (!coords) return null;
-          return {
-            id: idx,
-            poiId: p.poiId,
-            title: p.title,
-            latitude: coords[0],
-            longitude: coords[1],
-            iconPath: '/assets/marker.png',
-            width: 24,
-            height: 24,
-            callout: {
-              content: p.title,
-              display: 'BYCLICK',
-              borderRadius: 8,
-              padding: 8,
-              fontSize: 12,
-            },
-          };
-        })
-        .filter(Boolean);
 
       // 构建路线 polyline
       const points = pois
@@ -144,12 +119,19 @@ Page({
         centerLng = points.reduce((s, p) => s + p.longitude, 0) / points.length;
       }
 
+      let seasonText = '';
+      if (Array.isArray(route.season)) {
+        seasonText = route.season.join('/');
+      } else if (typeof route.season === 'string') {
+        seasonText = route.season;
+      }
+
       this.setData({
         route,
         pois,
         sortedPois: pois,
         chartData,
-        markers,
+        seasonText,
         polyline,
         latitude: centerLat,
         longitude: centerLng,

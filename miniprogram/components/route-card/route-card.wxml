@@ -18,7 +18,7 @@
 
     <!-- 季节 -->
     <text class="card-season" wx:if="{{data.season && data.season.length > 0}}">
-      适合季节: {{data.season.join('/')}}
+      适合季节: {{seasonText}}
     </text>
 
     <!-- 底部信息 -->

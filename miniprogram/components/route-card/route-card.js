@@ -11,6 +11,7 @@ Component({
     statusBg: '',
     cardBg: '',
     statusText: '',
+    seasonText: '',
   },
 
   lifetimes: {
@@ -22,6 +23,7 @@ Component({
   observers: {
     'data': function () {
       this.updateStatusStyle();
+      this.updateSeasonText();
     },
   },
 
@@ -46,6 +48,18 @@ Component({
       }
 
       this.setData({ statusColor, cardBg, statusText: status });
+    },
+
+    updateSeasonText() {
+      const { data } = this.data;
+      if (!data || !data.season) return;
+      let seasonText = '';
+      if (Array.isArray(data.season)) {
+        seasonText = data.season.join('/');
+      } else if (typeof data.season === 'string') {
+        seasonText = data.season;
+      }
+      this.setData({ seasonText });
     },
 
     onFavoriteTap(e) {
