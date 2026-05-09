@@ -116,29 +116,6 @@
   padding-bottom: 120rpx;
 }
 
-/* 返回浮动按钮 */
-.back-floating {
-  position: absolute;
-  bottom: 120rpx;
-  left: 32rpx;
-  width: 96rpx;
-  height: 96rpx;
-  background-color: rgba(17, 24, 39, 0.9);
-  backdrop-filter: blur(12px);
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 4rpx 20rpx rgba(0, 0, 0, 0.3);
-  z-index: 70;
-}
-
-.back-floating-icon {
-  color: #ffffff;
-  font-size: 48rpx;
-  font-weight: bold;
-}
-
 /* 海拔图表区域 */
 .chart-section {
   margin-bottom: 32rpx;

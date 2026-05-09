@@ -37,11 +37,6 @@
 
     <!-- 展开内容 -->
     <view class="sheet-content" wx:if="{{isExpanded}}">
-      <!-- 返回按钮 -->
-      <view class="back-floating" bindtap="onBack">
-        <text class="back-floating-icon">‹</text>
-      </view>
-
       <!-- 海拔图表 -->
       <view class="chart-section">
         <altitude-chart data="{{chartData}}" />

@@ -1,5 +1,4 @@
-const { getRouteById, getRoutePOIs, getAllPOIs } = require('../../lib/notion');
-const { findLocalRoute } = require('../../utils/storage');
+const { getRouteById, getRoutePOIs } = require('../../lib/notion');
 const { parseCoordinates } = require('../../lib/geo');
 
 Page({
@@ -29,23 +28,10 @@ Page({
   async loadRouteData(id) {
     this.setData({ loading: true });
     try {
-      let route = null;
+      let route = await getRouteById(id);
       let pois = [];
-
-      if (id.startsWith('custom_')) {
-        route = findLocalRoute(id);
-        if (route) {
-          const allPois = await getAllPOIs();
-          const sequence = route.routeSequence || [];
-          pois = allPois
-            .filter((p) => sequence.includes(p.poiId))
-            .sort((a, b) => sequence.indexOf(a.poiId) - sequence.indexOf(b.poiId));
-        }
-      } else {
-        route = await getRouteById(id);
-        if (route) {
-          pois = await getRoutePOIs(id, route.routeSequence);
-        }
+      if (route) {
+        pois = await getRoutePOIs(id, route.routeSequence);
       }
 
       if (!route) {
@@ -247,8 +233,4 @@ Page({
     });
   },
 
-  // 返回
-  onBack() {
-    wx.navigateBack();
-  },
 });

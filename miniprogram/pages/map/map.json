@@ -1,5 +1,5 @@
 {
-  "navigationStyle": "custom",
+  "navigationBarTitleText": "探索地图",
   "usingComponents": {
     "explore-map-panel": "../../components/explore-map-panel/explore-map-panel"
   }

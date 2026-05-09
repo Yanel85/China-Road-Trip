@@ -8,7 +8,6 @@
     scale="{{scale}}"
     markers="{{mapMarkers}}"
     bindmarkertap="onMarkerTap"
-    show-location
     enable-zoom
     enable-scroll
   >
@@ -17,8 +16,4 @@
   <!-- 收藏线路面板 -->
   <explore-map-panel routes="{{routes}}" favorites="{{favorites}}" />
 
-  <!-- 返回按钮 -->
-  <view class="back-btn" bindtap="onBack">
-    <text class="back-icon">‹</text>
-  </view>
 </view>

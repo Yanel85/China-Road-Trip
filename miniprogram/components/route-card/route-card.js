@@ -30,14 +30,11 @@ Component({
       const { data } = this.data;
       if (!data || !data.status) return;
 
-      const status = data.isCustom ? '自定义线路' : (data.status || '未知');
+      const status = data.status || '未知';
       let statusColor = 'status-gray';
       let cardBg = 'card-default';
 
-      if (data.isCustom) {
-        statusColor = 'status-brand';
-        cardBg = 'card-custom';
-      } else if (status.includes('开放') || status.includes('clear')) {
+      if (status.includes('开放') || status.includes('clear')) {
         statusColor = 'status-success';
         cardBg = 'card-green';
       } else if (status.includes('封路') || status.includes('congested')) {

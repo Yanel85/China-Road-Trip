@@ -25,15 +25,6 @@
     <block wx:for="{{filteredRoutes}}" wx:key="id">
       <view class="route-item" data-id="{{item.id}}" bindtap="onRouteTap">
         <route-card data="{{item}}" is-favorited="{{favorites.indexOf(item.id) > -1}}" />
-        <!-- 删除按钮（仅自定义路线） -->
-        <view
-          wx:if="{{item.isCustom}}"
-          class="delete-btn"
-          catchtap="onDeleteRoute"
-          data-id="{{item.id}}"
-        >
-          <text class="delete-icon">✕</text>
-        </view>
       </view>
     </block>
 
