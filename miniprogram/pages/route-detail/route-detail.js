@@ -1,4 +1,4 @@
-const { getRouteById, getRoutePOIs } = require('../../lib/notion');
+const { getRouteById, getRoutePOIs, getCachedImage, precacheImages } = require('../../lib/notion');
 const { parseCoordinates } = require('../../lib/geo');
 
 Page({
@@ -10,6 +10,7 @@ Page({
     sortAsc: true,
     isExpanded: true,
     selectedPOI: null,
+    poiImageUrl: '',
     chartData: [],
     seasonText: '',
     loading: true,
@@ -126,6 +127,10 @@ Page({
         seasonText = route.season;
       }
 
+      // 预缓存所有 POI 图片
+      const allImageUrls = pois.filter((p) => p.images && p.images.length > 0).flatMap((p) => p.images);
+      precacheImages(allImageUrls);
+
       this.setData({
         route,
         pois,
@@ -191,7 +196,8 @@ Page({
   // POI 点击
   onPOITap(e) {
     const poi = e.currentTarget.dataset.poi;
-    this.setData({ selectedPOI: poi, isExpanded: false });
+    const poiImageUrl = (poi.images && poi.images.length > 0) ? getCachedImage(poi.images[0]) : '';
+    this.setData({ selectedPOI: poi, poiImageUrl, isExpanded: false });
   },
 
   // 关闭 POI 详情

@@ -1,4 +1,5 @@
 const { toggleFavorite, isFavorited } = require('../../utils/storage');
+const { getCachedImage } = require('../../lib/notion');
 
 Component({
   properties: {
@@ -12,6 +13,7 @@ Component({
     cardBg: '',
     statusText: '',
     seasonText: '',
+    coverUrl: '',
   },
 
   lifetimes: {
@@ -24,6 +26,7 @@ Component({
     'data': function () {
       this.updateStatusStyle();
       this.updateSeasonText();
+      this.updateCover();
     },
   },
 
@@ -60,6 +63,12 @@ Component({
         seasonText = data.season;
       }
       this.setData({ seasonText });
+    },
+
+    updateCover() {
+      const { data } = this.data;
+      if (!data || !data.cover) return;
+      this.setData({ coverUrl: getCachedImage(data.cover) });
     },
 
     onFavoriteTap(e) {

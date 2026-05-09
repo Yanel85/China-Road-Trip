@@ -75,7 +75,7 @@
     <view class="poi-popup-card" catchtap="">
       <!-- 图片 -->
       <view class="poi-popup-image" wx:if="{{selectedPOI.images && selectedPOI.images.length > 0}}">
-        <image src="{{selectedPOI.images[0]}}" mode="aspectFill" class="poi-popup-img" />
+        <image src="{{poiImageUrl}}" mode="aspectFill" class="poi-popup-img" />
         <view class="poi-popup-type">{{selectedPOI.type}}</view>
         <view class="poi-popup-close" bindtap="onClosePOI">✕</view>
       </view>

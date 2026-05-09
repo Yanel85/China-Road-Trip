@@ -2,7 +2,7 @@
 <view class="route-card {{cardBg}} {{data.status && (data.status.includes('封闭') || data.status.includes('closed')) ? 'card-closed' : ''}}" bindtap="onCardTap">
   <!-- 封面图 -->
   <view class="card-image-wrap">
-    <image src="{{data.cover}}" mode="aspectFill" class="card-image" />
+    <image src="{{coverUrl || data.cover}}" mode="aspectFill" class="card-image" />
     <view class="card-image-overlay"></view>
   </view>
 

@@ -163,9 +163,130 @@ function getMockPOIs() {
   ];
 }
 
+/**
+ * 图片缓存 - 使用 wx.downloadFile + 文件系统实现本地缓存，有效期一个月
+ */
+const IMAGE_CACHE_DIR = `${wx.env.USER_DATA_PATH}/image_cache`;
+const IMAGE_CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 一个月
+const IMAGE_CACHE_MANIFEST = `${IMAGE_CACHE_DIR}/manifest.json`;
+let imageManifest = null;
+
+function ensureCacheDir() {
+  try {
+    const fs = wx.getFileSystemManager();
+    try { fs.accessSync(IMAGE_CACHE_DIR); } catch (e) {
+      fs.mkdirSync(IMAGE_CACHE_DIR, true);
+    }
+  } catch (e) {}
+}
+
+function loadManifest() {
+  if (imageManifest) return imageManifest;
+  try {
+    const fs = wx.getFileSystemManager();
+    const data = fs.readFileSync(IMAGE_CACHE_MANIFEST, 'utf8');
+    imageManifest = JSON.parse(data);
+  } catch (e) {
+    imageManifest = {};
+  }
+  return imageManifest;
+}
+
+function saveManifest() {
+  try {
+    const fs = wx.getFileSystemManager();
+    fs.writeFileSync(IMAGE_CACHE_MANIFEST, JSON.stringify(imageManifest), 'utf8');
+  } catch (e) {}
+}
+
+function urlToFilename(url) {
+  let hash = 0;
+  for (let i = 0; i < url.length; i++) {
+    hash = ((hash << 5) - hash + url.charCodeAt(i)) | 0;
+  }
+  const ext = url.match(/\.(jpg|jpeg|png|gif|webp)(\?|$)/i);
+  return `${Math.abs(hash)}${ext ? '.' + ext[1].toLowerCase() : '.jpg'}`;
+}
+
+function getCachedImagePath(url) {
+  const manifest = loadManifest();
+  const entry = manifest[url];
+  if (!entry) return null;
+  if (Date.now() - entry.timestamp > IMAGE_CACHE_TTL) {
+    delete manifest[url];
+    saveManifest();
+    return null;
+  }
+  return entry.path;
+}
+
+function downloadAndCacheImage(url) {
+  return new Promise((resolve, reject) => {
+    ensureCacheDir();
+    const filename = urlToFilename(url);
+    const filePath = `${IMAGE_CACHE_DIR}/${filename}`;
+
+    // 检查文件是否已存在
+    try {
+      const fs = wx.getFileSystemManager();
+      const stat = fs.statSync(filePath);
+      if (stat && stat.size > 0) {
+        const manifest = loadManifest();
+        if (manifest[url] && Date.now() - manifest[url].timestamp < IMAGE_CACHE_TTL) {
+          resolve(filePath);
+          return;
+        }
+      }
+    } catch (e) {}
+
+    wx.downloadFile({
+      url,
+      filePath,
+      success: (res) => {
+        if (res.statusCode === 200) {
+          const manifest = loadManifest();
+          manifest[url] = { path: filePath, timestamp: Date.now() };
+          saveManifest();
+          resolve(filePath);
+        } else {
+          reject(new Error(`Download failed: ${res.statusCode}`));
+        }
+      },
+      fail: reject,
+    });
+  });
+}
+
+/**
+ * 获取图片的本地缓存路径，如果没有缓存则返回原始 URL
+ */
+function getCachedImage(url) {
+  if (!url || !url.startsWith('http')) return url;
+  const cached = getCachedImagePath(url);
+  if (cached) return cached;
+  // 异步缓存，不阻塞渲染
+  downloadAndCacheImage(url).catch(() => {});
+  return url;
+}
+
+/**
+ * 批量预缓存图片
+ */
+function precacheImages(urls) {
+  if (!Array.isArray(urls)) return;
+  urls.filter((u) => u && u.startsWith('http')).forEach((url) => {
+    const cached = getCachedImagePath(url);
+    if (!cached) {
+      downloadAndCacheImage(url).catch(() => {});
+    }
+  });
+}
+
 module.exports = {
   getRoutes,
   getAllPOIs,
   getRouteById,
   getRoutePOIs,
+  getCachedImage,
+  precacheImages,
 };
