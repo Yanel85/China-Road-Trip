@@ -67,4 +67,8 @@ Page({
       });
     }
   },
+
+  onBack() {
+    wx.navigateBack();
+  },
 });
