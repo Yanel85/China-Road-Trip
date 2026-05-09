@@ -21,12 +21,14 @@
       {
         "pagePath": "pages/index/index",
         "text": "路线",
-        "iconPath": "assets/map.png"
+        "iconPath": "assets/tab-route.png",
+        "selectedIconPath": "assets/tab-route.png" 
       },
       {
         "pagePath": "pages/map/map",
         "text": "地图",
-        "iconPath": "assets/map.png"
+        "iconPath": "assets/tab-map.png",
+        "selectedIconPath": "assets/tab-map.png" 
       }
     ]
   },

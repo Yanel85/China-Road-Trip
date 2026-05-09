@@ -31,11 +31,7 @@
   transition: all 0.2s;
 }
 
-.tag-active {
-  background-color: var(--color-brand);
-  color: #ffffff;
-  box-shadow: 0 4rpx 12rpx rgba(44, 62, 80, 0.3);
-}
+
 
 /* 路线列表 */
 .route-list {

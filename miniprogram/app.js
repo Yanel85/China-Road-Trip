@@ -1,7 +1,4 @@
 App({
   onLaunch() {},
-  globalData: {
-    routes: [],
-    pois: [],
-  },
+  globalData: {},
 });
