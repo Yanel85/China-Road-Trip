@@ -10,7 +10,6 @@
       scale="{{scale}}"
       markers="{{markers}}"
       polyline="{{polyline}}"
-      show-location
       enable-zoom
       enable-scroll
     >

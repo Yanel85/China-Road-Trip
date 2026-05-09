@@ -53,17 +53,4 @@
       </view>
     </view>
   </view>
-
-  <!-- 创建路线按钮 -->
-  <view class="create-btn" bindtap="onCreateRoute">
-    <text class="create-icon">+</text>
-    <text class="create-text">创建</text>
-  </view>
-
-  <!-- 自定义路线创建器 -->
-  <custom-route-creator
-    is-open="{{showCreator}}"
-    bindclose="onCloseCreator"
-    bindsaved="onCreatorSaved"
-  />
 </view>

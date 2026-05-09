@@ -117,34 +117,6 @@ Page({
     });
   },
 
-  onDeleteRoute(e) {
-    const id = e.currentTarget.dataset.id;
-    wx.showModal({
-      title: '确认删除',
-      content: '确定要删除这条自定义路线吗？',
-      success: (res) => {
-        if (res.confirm) {
-          const { deleteLocalRoute } = require('../../utils/storage');
-          deleteLocalRoute(id);
-          this.refreshLocalData();
-        }
-      },
-    });
-  },
-
-  onCreateRoute() {
-    this.setData({ showCreator: true });
-  },
-
-  onCloseCreator() {
-    this.setData({ showCreator: false });
-  },
-
-  onCreatorSaved() {
-    this.refreshLocalData();
-    wx.showToast({ title: '路线已创建', icon: 'success' });
-  },
-
   onPullDownRefresh() {
     this.loadData().then(() => wx.stopPullDownRefresh());
   },
