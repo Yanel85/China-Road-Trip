@@ -1,0 +1,10 @@
+{
+  "name": "getPOIs",
+  "version": "1.0.0",
+  "description": "获取POI数据云函数",
+  "main": "index.js",
+  "dependencies": {
+    "wx-server-sdk": "~2.7.4",
+    "@notionhq/client": "^3.1.2"
+  }
+}
