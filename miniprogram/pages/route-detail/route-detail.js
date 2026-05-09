@@ -193,10 +193,23 @@ Page({
     this.setData({ isExpanded: !this.data.isExpanded });
   },
 
-  // POI 点击
+  // POI 点击 - 地图跳转到该位置
   onPOITap(e) {
     const poi = e.currentTarget.dataset.poi;
     const poiImageUrl = (poi.images && poi.images.length > 0) ? getCachedImage(poi.images[0]) : '';
+
+    // 地图转向到该 POI 位置
+    if (poi.coordinates && poi.coordinates.includes(',')) {
+      const coords = parseCoordinates(poi.coordinates);
+      if (coords) {
+        this.setData({
+          latitude: coords[0],
+          longitude: coords[1],
+          scale: 12,
+        });
+      }
+    }
+
     this.setData({ selectedPOI: poi, poiImageUrl, isExpanded: false });
   },
 
