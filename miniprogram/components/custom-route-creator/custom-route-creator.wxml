@@ -1,0 +1,122 @@
+<!--自定义路线创建器 - 对应原项目 CustomRouteCreator-->
+<!-- 遮罩层 -->
+<view class="mask {{isOpen ? 'show' : ''}}" bindtap="onClose"></view>
+
+<!-- 底部弹出面板 -->
+<view class="sheet {{isOpen ? 'show' : ''}}">
+  <!-- 头部 -->
+  <view class="sheet-header">
+    <view class="header-info">
+      <text class="sheet-title">规划我的路线</text>
+      <text class="sheet-step">Step {{step === 'endpoints' ? '1' : '2'}} of 2</text>
+    </view>
+    <view class="close-btn" bindtap="onClose">
+      <text class="close-icon">✕</text>
+    </view>
+  </view>
+
+  <!-- Step 1: 选择起终点 -->
+  <view class="sheet-body" wx:if="{{step === 'endpoints'}}">
+    <!-- 起点 -->
+    <view class="input-group">
+      <text class="input-label">起点</text>
+      <view class="input-wrap {{focusedInput === 'start' ? 'focus' : ''}} {{startPoi ? 'selected' : ''}}">
+        <text class="input-icon">🔍</text>
+        <input
+          class="poi-input"
+          placeholder="搜索并选择起点..."
+          value="{{focusedInput === 'start' ? startSearch : startPoi.title}}"
+          focus="{{focusedInput === 'start'}}"
+          bindinput="onStartSearchInput"
+          bindfocus="onStartFocus"
+          bindblur="onStartBlur"
+        />
+        <text class="check-icon" wx:if="{{startPoi}}">✓</text>
+      </view>
+      <!-- 起点搜索结果 -->
+      <view class="search-dropdown" wx:if="{{focusedInput === 'start' && startSearch.length > 0}}">
+        <view
+          wx:for="{{startSearchResults}}"
+          wx:key="poiId"
+          class="search-item"
+          bindtap="onSelectStart"
+          data-index="{{index}}"
+        >
+          <view class="item-info">
+            <text class="item-title">{{item.title}}</text>
+            <text class="item-type">{{item.type}}</text>
+          </view>
+        </view>
+        <view class="search-empty" wx:if="{{startSearchResults.length === 0}}">未找到匹配的点位</view>
+      </view>
+    </view>
+
+    <!-- 终点 -->
+    <view class="input-group">
+      <text class="input-label">终点</text>
+      <view class="input-wrap {{focusedInput === 'end' ? 'focus' : ''}} {{endPoi ? 'selected' : ''}}">
+        <text class="input-icon">🔍</text>
+        <input
+          class="poi-input"
+          placeholder="搜索并选择终点..."
+          value="{{focusedInput === 'end' ? endSearch : endPoi.title}}"
+          focus="{{focusedInput === 'end'}}"
+          bindinput="onEndSearchInput"
+          bindfocus="onEndFocus"
+          bindblur="onEndBlur"
+        />
+        <text class="check-icon" wx:if="{{endPoi}}">✓</text>
+      </view>
+      <!-- 终点搜索结果 -->
+      <view class="search-dropdown" wx:if="{{focusedInput === 'end' && endSearch.length > 0}}">
+        <view
+          wx:for="{{endSearchResults}}"
+          wx:key="poiId"
+          class="search-item"
+          bindtap="onSelectEnd"
+          data-index="{{index}}"
+        >
+          <view class="item-info">
+            <text class="item-title">{{item.title}}</text>
+            <text class="item-type">{{item.type}}</text>
+          </view>
+        </view>
+        <view class="search-empty" wx:if="{{endSearchResults.length === 0}}">未找到匹配的点位</view>
+      </view>
+    </view>
+  </view>
+
+  <!-- Step 2: 命名 -->
+  <view class="sheet-body" wx:if="{{step === 'naming'}}">
+    <text class="input-label">给你的路线起个名字</text>
+    <input
+      class="name-input"
+      placeholder="例如：2026年夏季新疆深度游"
+      value="{{name}}"
+      focus
+      bindinput="onNameInput"
+    />
+    <view class="preview-box">
+      <text class="preview-label">规划结果预览（起点和终点）</text>
+      <view class="preview-route">
+        <block wx:for="{{selectedPois}}" wx:key="poiId">
+          <view class="preview-item">
+            <text class="preview-name">{{item.title}}</text>
+          </view>
+          <text class="preview-arrow" wx:if="{{index < selectedPois.length - 1}}">→</text>
+        </block>
+      </view>
+    </view>
+  </view>
+
+  <!-- 底部按钮 -->
+  <view class="sheet-footer">
+    <view
+      class="action-btn {{step === 'endpoints' ? 'btn-brand' : 'btn-dark'}} {{canProceed ? '' : 'disabled'}}"
+      bindtap="onAction"
+    >
+      <text wx:if="{{step === 'endpoints'}}">下一步：命名路线</text>
+      <text wx:else>完成并保存</text>
+    </view>
+  </view>
+</view>

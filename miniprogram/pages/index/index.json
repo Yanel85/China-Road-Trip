@@ -1,7 +1,9 @@
 {
   "navigationBarTitleText": "自驾路 | 探索中心",
+  "enablePullDownRefresh": true,
   "usingComponents": {
     "search-bar": "../../components/search-bar/search-bar",
-    "route-card": "../../components/route-card/route-card"
+    "route-card": "../../components/route-card/route-card",
+    "custom-route-creator": "../../components/custom-route-creator/custom-route-creator"
   }
 }

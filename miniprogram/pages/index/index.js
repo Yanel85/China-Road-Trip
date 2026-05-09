@@ -133,30 +133,16 @@ Page({
   },
 
   onCreateRoute() {
-    wx.showModal({
-      title: '创建自定义路线',
-      editable: true,
-      placeholderText: '请输入路线名称',
-      success: (res) => {
-        if (res.confirm && res.content && res.content.trim()) {
-          const { saveLocalRoute } = require('../../utils/storage');
-          const newRoute = {
-            id: 'custom_' + Date.now(),
-            title: res.content.trim(),
-            distance: 0,
-            tags: [],
-            season: [],
-            status: '自定义',
-            cover: 'https://picsum.photos/seed/custom/800/600',
-            routeSequence: [],
-            isCustom: true,
-          };
-          saveLocalRoute(newRoute);
-          this.refreshLocalData();
-          wx.showToast({ title: '路线已创建', icon: 'success' });
-        }
-      },
-    });
+    this.setData({ showCreator: true });
+  },
+
+  onCloseCreator() {
+    this.setData({ showCreator: false });
+  },
+
+  onCreatorSaved() {
+    this.refreshLocalData();
+    wx.showToast({ title: '路线已创建', icon: 'success' });
   },
 
   onPullDownRefresh() {
