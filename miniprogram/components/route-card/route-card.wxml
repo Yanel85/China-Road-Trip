@@ -1,0 +1,32 @@
+<!--路线卡片 - 对应原项目 RouteCard-->
+<view class="route-card {{cardBg}} {{data.status && (data.status.includes('封闭') || data.status.includes('closed')) ? 'card-closed' : ''}}" bindtap="onCardTap">
+  <!-- 封面图 -->
+  <view class="card-image-wrap">
+    <image src="{{data.cover}}" mode="aspectFill" class="card-image" />
+    <view class="card-image-overlay"></view>
+  </view>
+
+  <!-- 信息区 -->
+  <view class="card-info">
+    <view class="card-title-row">
+      <text class="card-title">{{data.title}}</text>
+      <!-- 收藏按钮（非自定义路线） -->
+      <view class="fav-btn {{isFavorited ? 'fav-active' : ''}}" wx:if="{{!data.isCustom}}" catchtap="onFavoriteTap">
+        <text class="fav-icon">{{isFavorited ? '♥' : '♡'}}</text>
+      </view>
+    </view>
+
+    <!-- 季节 -->
+    <text class="card-season" wx:if="{{!data.isCustom && data.season && data.season.length > 0}}">
+      适合季节: {{data.season.join('/')}}
+    </text>
+
+    <!-- 底部信息 -->
+    <view class="card-footer">
+      <text class="card-distance" wx:if="{{!data.isCustom}}">{{data.distance}} km</text>
+      <view class="status-tag {{statusColor}}">
+        <text class="status-text">{{statusText}}</text>
+      </view>
+    </view>
+  </view>
+</view>

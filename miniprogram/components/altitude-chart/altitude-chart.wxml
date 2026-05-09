@@ -1,0 +1,4 @@
+<!--海拔图表 - 对应原项目 AltitudeChart，使用 Canvas 替代 Recharts-->
+<view class="chart-container">
+  <canvas id="altitudeCanvas" type="2d" class="altitude-canvas"></canvas>
+</view>

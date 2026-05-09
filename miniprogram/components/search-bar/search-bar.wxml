@@ -1,0 +1,14 @@
+<view class="search-bar">
+  <view class="search-icon-wrap">
+    <text class="search-icon">🔍</text>
+  </view>
+  <input
+    class="search-input"
+    type="text"
+    value="{{value}}"
+    placeholder="{{placeholder}}"
+    placeholder-class="search-placeholder"
+    bindinput="onInput"
+    confirm-type="search"
+  />
+</view>

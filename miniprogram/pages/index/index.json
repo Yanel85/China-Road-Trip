@@ -1,0 +1,7 @@
+{
+  "navigationBarTitleText": "自驾路 | 探索中心",
+  "usingComponents": {
+    "search-bar": "../../components/search-bar/search-bar",
+    "route-card": "../../components/route-card/route-card"
+  }
+}

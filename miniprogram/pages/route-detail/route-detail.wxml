@@ -1,0 +1,115 @@
+<!--路线详情页 - 对应原项目 RouteInteractiveLayout 移动端部分-->
+<view class="detail-page" wx:if="{{!loading && route}}">
+  <!-- 地图区域 -->
+  <view class="map-area" style="height: {{isExpanded ? '23vh' : '100vh'}}">
+    <map
+      id="routeMap"
+      class="route-map"
+      latitude="{{latitude}}"
+      longitude="{{longitude}}"
+      scale="{{scale}}"
+      markers="{{markers}}"
+      polyline="{{polyline}}"
+      show-location
+      enable-zoom
+      enable-scroll
+    >
+    </map>
+  </view>
+
+  <!-- 底部抽屉 -->
+  <view class="bottom-sheet" style="height: {{isExpanded ? '77vh' : '90px'}}">
+    <!-- 拖拽条 -->
+    <view class="drag-handle" bindtap="onToggleExpand">
+      <view class="drag-bar"></view>
+    </view>
+
+    <!-- 路线标题（始终可见） -->
+    <view class="sheet-header" bindtap="onToggleExpand">
+      <text class="route-title">{{route.title}}</text>
+      <view class="route-meta">
+        <text class="meta-text">里程: {{route.distance}}km</text>
+        <text class="meta-text" wx:if="{{route.season.length > 0}}"> · 适宜季节: {{route.season.join('/')}}</text>
+        <view class="status-badge status-{{route.status.includes('开放') || route.status.includes('clear') ? 'open' : route.status.includes('封路') || route.status.includes('拥堵') ? 'warning' : 'danger'}}" wx:if="{{!(route.status.includes('开放') || route.status.includes('clear'))}}">
+          {{route.status}}
+        </view>
+      </view>
+    </view>
+
+    <!-- 展开内容 -->
+    <view class="sheet-content" wx:if="{{isExpanded}}">
+      <!-- 返回按钮 -->
+      <view class="back-floating" bindtap="onBack">
+        <text class="back-floating-icon">‹</text>
+      </view>
+
+      <!-- 海拔图表 -->
+      <view class="chart-section">
+        <altitude-chart data="{{chartData}}" />
+      </view>
+
+      <!-- 排序控制 -->
+      <view class="sort-bar">
+        <text class="sort-title">详细路段 & 点位</text>
+        <view class="sort-controls">
+          <text class="sort-btn {{sortBy === 'sequence' ? 'sort-active' : ''}}" data-type="sequence" bindtap="onSortTap">距离</text>
+          <text class="sort-btn {{sortBy === 'altitude' ? 'sort-active' : ''}}" data-type="altitude" bindtap="onSortTap">海拔</text>
+          <text class="sort-btn {{sortBy === 'roadStatus' ? 'sort-active' : ''}}" data-type="roadStatus" bindtap="onSortTap">状态</text>
+        </view>
+      </view>
+
+      <!-- POI 列表 -->
+      <view class="poi-list">
+        <view
+          wx:for="{{sortedPois}}"
+          wx:key="id"
+          class="poi-item poi-border-{{item.roadStatus === '畅通' ? 'green' : item.roadStatus === '封路' ? 'red' : item.roadStatus === '拥堵' ? 'yellow' : 'gray'}}"
+          data-poi="{{item}}"
+          bindtap="onPOITap"
+        >
+          <view class="poi-header">
+            <text class="poi-name">{{item.title}}</text>
+            <text class="poi-altitude" wx:if="{{item.altitude > 0}}">ALT {{item.altitude}}m</text>
+          </view>
+          <text class="poi-desc">{{item.description || '暂无点位描述...'}}</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- POI 详情弹窗 -->
+  <view class="poi-popup" wx:if="{{selectedPOI}}" bindtap="onClosePOI">
+    <view class="poi-popup-card" catchtap="">
+      <!-- 图片 -->
+      <view class="poi-popup-image" wx:if="{{selectedPOI.images && selectedPOI.images.length > 0}}">
+        <image src="{{selectedPOI.images[0]}}" mode="aspectFill" class="poi-popup-img" />
+        <view class="poi-popup-type">{{selectedPOI.type}}</view>
+        <view class="poi-popup-close" bindtap="onClosePOI">✕</view>
+      </view>
+      <view class="poi-popup-close-noimg" wx:else bindtap="onClosePOI">✕</view>
+
+      <!-- 信息 -->
+      <view class="poi-popup-info">
+        <view class="poi-popup-title-row">
+          <text class="poi-popup-title">{{selectedPOI.title}}</text>
+          <text class="poi-popup-alt" wx:if="{{selectedPOI.altitude > 0}}">ALT:{{selectedPOI.altitude}}m</text>
+        </view>
+        <text class="poi-popup-desc">{{selectedPOI.description || '暂无点位描述信息'}}</text>
+        <view class="poi-popup-nav" bindtap="onNavigate">
+          <text class="nav-text">导航去这</text>
+        </view>
+      </view>
+    </view>
+  </view>
+</view>
+
+<!-- 加载状态 -->
+<view class="loading-full" wx:if="{{loading}}">
+  <view class="loading-spinner"></view>
+  <text class="loading-text">载入地图数据...</text>
+</view>
+
+<!-- 未找到路线 -->
+<view class="not-found" wx:if="{{!loading && !route}}">
+  <text class="not-found-text">找不到该路线信息</text>
+</view>

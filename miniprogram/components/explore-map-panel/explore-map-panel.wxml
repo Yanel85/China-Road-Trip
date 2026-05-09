@@ -1,0 +1,32 @@
+<!-- 收藏线路面板 - 对应原项目 ExploreMapClient 中的浮动面板 -->
+<view class="panel-wrapper">
+  <!-- 收藏线路列表弹窗 -->
+  <view class="fav-list {{showList ? 'show' : ''}}">
+    <view class="fav-list-inner" wx:if="{{showList}}">
+      <view wx:if="{{favorites.length === 0}}" class="empty-tip">暂无收藏</view>
+      <view
+        wx:for="{{favItems}}"
+        wx:key="id"
+        class="fav-item {{item.visible ? 'active' : ''}}"
+        bindtap="onToggleVisible"
+        data-id="{{item.id}}"
+      >
+        <view class="fav-item-left">
+          <view class="eye-icon {{item.visible ? 'on' : 'off'}}">
+            <text>{{item.visible ? '👁' : '👁‍🗨'}}</text>
+          </view>
+          <text class="fav-title {{item.visible ? 'active' : ''}}">{{item.title}}</text>
+        </view>
+        <view class="fav-remove" catchtap="onRemoveFavorite" data-id="{{item.id}}">
+          <text>✕</text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 收藏列表切换按钮 -->
+  <view class="toggle-btn" bindtap="onToggleList">
+    <text class="toggle-icon">☰</text>
+    <text class="toggle-text">收藏线路列表</text>
+  </view>
+</view>
