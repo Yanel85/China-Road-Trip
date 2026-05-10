@@ -8,10 +8,17 @@
     longitude="{{longitude}}"
     scale="{{scale}}"
     polyline="{{mapPolyline}}"
+    markers="{{mapMarkers}}"
     enable-zoom
     enable-scroll
+    bindmarkertap="onMarkerTap"
   >
   </map>
+
+  <!-- 顶部提示消息 -->
+  <view class="toast-bar {{toastVisible ? 'toast-show' : ''}}">
+    <text class="toast-text">{{toastMessage}}</text>
+  </view>
 
   <!-- 底部面板 -->
   <view class="bottom-sheet {{sheetExpanded ? 'expanded' : ''}}">

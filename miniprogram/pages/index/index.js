@@ -34,7 +34,10 @@ Page({
     longitude: 100.0,
     scale: 5,
     mapPolyline: [],
+    mapMarkers: [],
     sheetExpanded: true,
+    toastMessage: '',
+    toastVisible: false,
   },
 
   onLoad() {
@@ -121,17 +124,28 @@ Page({
   onClearChecked() {
     const checkedIds = [];
     const filteredRoutes = this.data.filteredRoutes.map((r) => ({ ...r, _checked: false }));
-    this.setData({ checkedIds, filteredRoutes, mapPolyline: [], latitude: 33.5, longitude: 100.0, scale: 5 });
+    this.setData({ checkedIds, filteredRoutes, mapPolyline: [], mapMarkers: [], latitude: 33.5, longitude: 100.0, scale: 5 });
     this.saveChecked(checkedIds);
+  },
+
+  // 显示顶部提示消息
+  showToast(msg) {
+    if (this._toastTimer) clearTimeout(this._toastTimer);
+    this.setData({ toastMessage: msg, toastVisible: true });
+    this._toastTimer = setTimeout(() => {
+      this.setData({ toastVisible: false });
+    }, 2000);
   },
 
   onCheckTap(e) {
     const id = String(e.currentTarget.dataset.id);
+    const route = this.data.routes.find((r) => String(r.id) === id);
     let checkedIds = [...this.data.checkedIds];
     if (checkedIds.includes(id)) {
       checkedIds = checkedIds.filter((c) => c !== id);
     } else {
       checkedIds.push(id);
+      this.showToast(`${route ? route.title : '线路'}已显示`);
     }
     this.setData({ checkedIds });
     this.saveChecked(checkedIds);
@@ -142,14 +156,16 @@ Page({
   async updateMapForChecked() {
     const { checkedIds, routes } = this.data;
     if (checkedIds.length === 0) {
-      this.setData({ mapPolyline: [], latitude: 33.5, longitude: 100.0, scale: 5 });
+      this.setData({ mapPolyline: [], mapMarkers: [], latitude: 33.5, longitude: 100.0, scale: 5 });
       return;
     }
 
     const allPolylines = [];
+    const allMarkers = [];
     let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
 
-    for (const routeId of checkedIds) {
+    for (let i = 0; i < checkedIds.length; i++) {
+      const routeId = checkedIds[i];
       const route = routes.find((r) => String(r.id) === String(routeId));
       if (!route) continue;
 
@@ -175,6 +191,26 @@ Page({
             width: 3,
             arrowLine: true,
           });
+          // 取中点作为 marker 位置
+          const midIdx = Math.floor(points.length / 2);
+          const mid = points[midIdx];
+          allMarkers.push({
+            id: i + 1,
+            latitude: mid.latitude,
+            longitude: mid.longitude,
+            width: 24,
+            height: 24,
+            callout: {
+              content: route._shortName || route.title,
+              color: '#ffffff',
+              fontSize: 11,
+              borderRadius: 4,
+              borderWidth: 0,
+              bgColor: '#F39C12',
+              padding: 4,
+              display: 'ALWAYS',
+            },
+          });
           points.forEach((pt) => {
             if (pt.latitude < minLat) minLat = pt.latitude;
             if (pt.latitude > maxLat) maxLat = pt.latitude;
@@ -187,7 +223,7 @@ Page({
       }
     }
 
-    const update = { mapPolyline: allPolylines };
+    const update = { mapPolyline: allPolylines, mapMarkers: allMarkers };
 
     if (allPolylines.length > 0 && minLat !== Infinity) {
       const centerLat = (minLat + maxLat) / 2;
@@ -239,6 +275,18 @@ Page({
     wx.navigateTo({
       url: `/pages/route-detail/route-detail?id=${id}`,
     });
+  },
+
+  // ===== 地图 marker 点击 =====
+  onMarkerTap(e) {
+    const markerId = e.markerId;
+    const idx = markerId - 1;
+    const routeId = this.data.checkedIds[idx];
+    if (!routeId) return;
+    const route = this.data.routes.find((r) => String(r.id) === String(routeId));
+    if (route) {
+      this.showToast(`${route.title}已显示`);
+    }
   },
 
   // ===== 底部面板折叠/展开 =====
