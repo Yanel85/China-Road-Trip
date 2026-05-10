@@ -298,4 +298,17 @@ Page({
   onPullDownRefresh() {
     this.loadData().then(() => wx.stopPullDownRefresh());
   },
+
+  onShareAppMessage() {
+    return {
+      title: '探索西部自驾路书',
+      path: '/pages/index/index',
+    };
+  },
+
+  onShareTimeline() {
+    return {
+      title: '探索西部自驾路书',
+    };
+  },
 });

@@ -235,6 +235,19 @@ Page({
     this.setData({ selectedPOI: null, markers: [] });
   },
 
+  onShareAppMessage() {
+    return {
+      title: this.data.route ? this.data.route.title : '路线详情',
+      path: `/pages/route-detail/route-detail?id=${this.routeId}`,
+    };
+  },
+
+  onShareTimeline() {
+    return {
+      title: this.data.route ? this.data.route.title : '路线详情',
+    };
+  },
+
   // 导航
   onNavigate() {
     const poi = this.data.selectedPOI;
