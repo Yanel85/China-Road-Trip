@@ -1,10 +1,10 @@
-# Miniprogram Branch
+# Miniprogram 分支
 
-This branch contains the code for the Miniprogram platform of the China Road Trip project. It is specifically designed and optimized for the WeChat Mini Program ecosystem.
+此分支包含中国自驾游项目的微信小程序平台代码，专为微信小程序生态系统设计和优化。
 
-## Structure
+## 目录结构
 
-The folder structure is as follows:
+项目的文件夹结构如下：
 
 ```
 miniprogram/
@@ -37,16 +37,16 @@ miniprogram/
 ├── sitemap.json
 ```
 
-## Purpose
+## 分支用途
 
-This branch is dedicated to the development and maintenance of the WeChat Mini Program version of the China Road Trip application. It includes:
+此分支专注于微信小程序版本的开发和维护，主要包括：
 
-- **Components**: Reusable UI components such as the altitude chart.
-- **Pages**: Different pages of the application, including the index and route detail pages.
-- **Utilities**: Helper functions for various tasks.
-- **Configuration Files**: Essential configuration files for the Mini Program.
+- **组件**：可复用的 UI 组件，例如海拔图表。
+- **页面**：应用的不同页面，包括首页和路线详情页。
+- **工具函数**：用于各种任务的辅助函数。
+- **配置文件**：微信小程序所需的关键配置文件。
 
-## Notes
+## 注意事项
 
-- Ensure that all changes are tested thoroughly in the WeChat Developer Tools before pushing to this branch.
-- This branch is independent of the `master` branch, which may target other platforms.
+- 在推送到此分支之前，请确保所有更改已在微信开发者工具中充分测试。
+- 此分支独立于 `master` 分支，`master` 分支可能面向其他平台。
