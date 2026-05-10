@@ -172,6 +172,20 @@ Page({
     });
   },
 
+  // ===== 复制网址 =====
+  onCopyUrl() {
+    wx.setClipboardData({
+      data: 'go.xwabc.cn',
+      success: () => {
+        wx.showToast({
+          title: '网址已复制，请用电脑浏览器打开',
+          icon: 'none',
+          duration: 3000,
+        });
+      },
+    });
+  },
+
   // ===== 路线卡片点击 → 进详情 =====
 
   onRouteTap(e) {

@@ -20,7 +20,7 @@
   right: 0;
   height: 160rpx;
   background-color: #ffffff;
-  border-radius: 30rpx 30rpx 0 0;
+  border-radius: 60rpx 60rpx 0 0;
   box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.1);
   z-index: 99;
   transition: height 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
@@ -28,20 +28,21 @@
 }
 
 .bottom-sheet.expanded {
-  height: 75vh;
+  height: 78vh;
 }
 
 /* 拖拽条 */
 .drag-handle {
   width: 100%;
-  height: 48rpx;
+  height: 22rpx;
   display: flex;
   align-items: center;
   justify-content: center;
+  background-color: #9ca3af;
 }
 
 .drag-bar {
-  width: 80rpx;
+  width: 120rpx;
   height: 10rpx;
   background-color: #d1d5db;
   border-radius: 10rpx;
@@ -51,8 +52,10 @@
 .sheet-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 0 40rpx 16rpx;
+  justify-content: center;
+  padding: 6rpx;
+  margin-bottom: 6rpx;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.1);
 }
 
 .sheet-title {
@@ -268,6 +271,27 @@
 .empty-text {
   color: #6b7280;
   font-size: 28rpx;
+}
+
+/* 底部提示 */
+.footer-tip {
+  margin: 2rpx 28rpx;
+  padding: 10rpx;
+  text-align: center;
+  border: 2rpx dashed #d1d5db;
+  border-radius: 26rpx;
+  background-color: #f8ef6d;
+}
+
+.footer-tip-text {
+  font-size: 26rpx;
+  color: #0a0a0a;
+}
+
+.footer-tip-url {
+  font-size: 26rpx;
+  color: #2563eb;
+  font-weight: 600;
 }
 
 /* 加载骨架 */

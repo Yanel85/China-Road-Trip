@@ -94,5 +94,11 @@
         </view>
       </view>
     </view>
+
+    <!-- 底部提示（始终可见，折叠时也显示在标题下方） -->
+    <view class="footer-tip" bindtap="onCopyUrl">
+      <text class="footer-tip-text">想要创建自定义线路？请电脑访问 </text>
+      <text class="footer-tip-url">go.xwabc.cn</text>
+    </view>
   </view>
 </view>
