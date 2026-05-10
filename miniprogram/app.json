@@ -1,7 +1,6 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/map/map",
     "pages/route-detail/route-detail",
     "pages/poi-detail/poi-detail"
   ],
@@ -11,26 +10,6 @@
     "navigationBarTextStyle": "black",
     "backgroundColor": "#F8F9FA",
     "backgroundTextStyle": "dark"
-  },
-  "tabBar": {
-    "color": "#94a3b8",
-    "selectedColor": "#2C3E50",
-    "backgroundColor": "#ffffff",
-    "borderStyle": "white",
-    "list": [
-      {
-        "pagePath": "pages/index/index",
-        "text": "路线",
-        "iconPath": "assets/tab-route.png",
-        "selectedIconPath": "assets/tab-route.png" 
-      },
-      {
-        "pagePath": "pages/map/map",
-        "text": "地图",
-        "iconPath": "assets/tab-map.png",
-        "selectedIconPath": "assets/tab-map.png" 
-      }
-    ]
   },
   "sitemapLocation": "sitemap.json",
   "style": "v2"

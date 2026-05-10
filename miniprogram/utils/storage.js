@@ -1,42 +1,23 @@
 /**
- * 本地存储工具 - 替代原项目的 localStorage + useFavorites hooks
+ * 本地存储工具
  */
 
-const FAVORITES_KEY = 'route_favorites';
-const MAX_FAVORITES = 6;
+const CHECKED_KEY = 'route_checked';
 
-// ========== 收藏路线 ==========
-
-function getFavorites() {
+function getChecked() {
   try {
-    const stored = wx.getStorageSync(FAVORITES_KEY);
+    const stored = wx.getStorageSync(CHECKED_KEY);
     return stored ? JSON.parse(stored) : [];
   } catch (e) {
     return [];
   }
 }
 
-function toggleFavorite(id) {
-  const favorites = getFavorites();
-  let next;
-  if (favorites.includes(id)) {
-    next = favorites.filter((f) => f !== id);
-  } else {
-    next = [id, ...favorites];
-    if (next.length > MAX_FAVORITES) {
-      next = next.slice(0, MAX_FAVORITES);
-    }
-  }
-  wx.setStorageSync(FAVORITES_KEY, JSON.stringify(next));
-  return next;
-}
-
-function isFavorited(id) {
-  return getFavorites().includes(id);
+function saveChecked(ids) {
+  wx.setStorageSync(CHECKED_KEY, JSON.stringify(ids));
 }
 
 module.exports = {
-  getFavorites,
-  toggleFavorite,
-  isFavorited,
+  getChecked,
+  saveChecked,
 };

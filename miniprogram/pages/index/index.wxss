@@ -1,14 +1,81 @@
-/* 首页样式 - 对应原项目 ResponsiveHome 移动端 */
+/* 首页 - 地图 + 底部面板 */
 .page-container {
-  min-height: 100vh;
-  background-color: var(--color-background);
-  padding-bottom: 120rpx;
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
 }
 
-/* 标签区域 */
-.tags-section {
+/* 地图 */
+.main-map {
+  width: 100%;
+  height: 100%;
+}
+
+/* 底部面板 */
+.bottom-sheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 160rpx;
+  background-color: #ffffff;
+  border-radius: 30rpx 30rpx 0 0;
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.1);
+  z-index: 99;
+  transition: height 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  overflow: hidden;
+}
+
+.bottom-sheet.expanded {
+  height: 75vh;
+}
+
+/* 拖拽条 */
+.drag-handle {
+  width: 100%;
+  height: 48rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.drag-bar {
+  width: 80rpx;
+  height: 10rpx;
+  background-color: #d1d5db;
+  border-radius: 10rpx;
+}
+
+/* 面板标题 */
+.sheet-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 40rpx 16rpx;
+}
+
+.sheet-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #111827;
+}
+
+.sheet-count {
+  font-size: 22rpx;
+  color: #6b7280;
+}
+
+/* 面板内容 */
+.sheet-content {
   padding: 0 40rpx;
-  margin-top: 16rpx;
+  padding-bottom: env(safe-area-inset-bottom);
+  overflow-y: auto;
+  max-height: calc(75vh - 120rpx);
+}
+
+/* 标签 */
+.tags-section {
   margin-bottom: 8rpx;
 }
 
@@ -16,7 +83,6 @@
   display: flex;
   flex-wrap: wrap;
   gap: 12rpx;
-  padding: 4rpx 0;
 }
 
 .tag-item {
@@ -25,49 +91,140 @@
   border-radius: 32rpx;
   font-size: 24rpx;
   font-weight: 600;
-  letter-spacing: 1rpx;
   background-color: #f3f4f6;
   color: #6b7280;
-  transition: all 0.2s;
 }
 
-
+.tag-active {
+  background-color: #e5e7eb;
+  color: #374151;
+}
 
 /* 路线列表 */
 .route-list {
-  padding: 16rpx 40rpx;
+  margin-top: 16rpx;
   display: flex;
   flex-direction: column;
-  gap: 32rpx;
+  gap: 20rpx;
 }
 
 .route-item {
   position: relative;
 }
 
-.delete-btn {
-  position: absolute;
-  top: 32rpx;
-  right: 32rpx;
+.route-card-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  background-color: #ffffff;
+  border-radius: 20rpx;
+  padding: 16rpx;
+  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
+}
+
+/* 左侧详情按钮 */
+.detail-btn {
   width: 56rpx;
   height: 56rpx;
-  background-color: #fef2f2;
   border-radius: 50%;
+  background-color: #f3f4f6;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 10;
+  flex-shrink: 0;
 }
 
-.delete-icon {
-  color: #ef4444;
-  font-size: 28rpx;
+.detail-btn-text {
+  font-size: 20rpx;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+/* 卡片内容 */
+.route-card-body {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: 12rpx;
+}
+
+.route-thumb {
+  width: 100rpx;
+  height: 100rpx;
+  border-radius: 12rpx;
+  flex-shrink: 0;
+  background-color: #f3f4f6;
+}
+
+.route-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-width: 0;
+}
+
+.route-name {
+  font-size: 26rpx;
+  font-weight: bold;
+  color: #111827;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.route-season {
+  font-size: 20rpx;
+  color: #6b7280;
+  margin-top: 4rpx;
+}
+
+.route-meta-row {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+  margin-top: 6rpx;
+}
+
+.route-distance {
+  font-size: 20rpx;
+  color: #9ca3af;
+}
+
+.route-status {
+  font-size: 18rpx;
+  color: #6b7280;
+  background-color: #f3f4f6;
+  padding: 2rpx 12rpx;
+  border-radius: 8rpx;
+}
+
+/* 右侧勾选框 */
+.check-box {
+  width: 48rpx;
+  height: 48rpx;
+  border-radius: 50%;
+  border: 3rpx solid #d1d5db;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.check-box.checked {
+  background-color: #F39C12;
+  border-color: #F39C12;
+}
+
+.check-icon {
+  color: #ffffff;
+  font-size: 24rpx;
   font-weight: bold;
 }
 
 /* 空状态 */
 .empty-state {
-  padding: 80rpx 40rpx;
+  padding: 60rpx 0;
   text-align: center;
 }
 
@@ -78,24 +235,24 @@
 
 /* 加载骨架 */
 .loading-state {
-  padding: 32rpx 40rpx;
+  margin-top: 16rpx;
 }
 
 .loading-skeleton {
   display: flex;
-  gap: 32rpx;
-  padding: 24rpx;
+  gap: 24rpx;
+  padding: 20rpx;
   background: #ffffff;
-  border-radius: 24rpx;
-  margin-bottom: 32rpx;
+  border-radius: 20rpx;
+  margin-bottom: 20rpx;
   animation: pulse 1.5s ease-in-out infinite;
 }
 
 .skeleton-image {
-  width: 160rpx;
-  height: 160rpx;
+  width: 100rpx;
+  height: 100rpx;
   background: #e5e7eb;
-  border-radius: 16rpx;
+  border-radius: 12rpx;
   flex-shrink: 0;
 }
 
@@ -103,20 +260,20 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  gap: 16rpx;
+  gap: 12rpx;
   padding-top: 8rpx;
 }
 
 .skeleton-title {
   width: 60%;
-  height: 32rpx;
+  height: 28rpx;
   background: #e5e7eb;
   border-radius: 8rpx;
 }
 
 .skeleton-subtitle {
   width: 40%;
-  height: 24rpx;
+  height: 22rpx;
   background: #e5e7eb;
   border-radius: 8rpx;
 }
@@ -124,33 +281,4 @@
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
-}
-
-/* 创建按钮 */
-.create-btn {
-  position: fixed;
-  bottom: 200rpx;
-  right: 32rpx;
-  width: 112rpx;
-  height: 112rpx;
-  background-color: #000000;
-  color: #ffffff;
-  border-radius: 24rpx;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 4rpx;
-  box-shadow: 0 8rpx 32rpx rgba(0, 0, 0, 0.3);
-  z-index: 50;
-}
-
-.create-icon {
-  font-size: 40rpx;
-  font-weight: bold;
-}
-
-.create-text {
-  font-size: 20rpx;
-  font-weight: bold;
 }

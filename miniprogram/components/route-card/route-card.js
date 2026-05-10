@@ -1,15 +1,12 @@
-const { toggleFavorite, isFavorited } = require('../../utils/storage');
 const { getCachedImage } = require('../../lib/notion');
 
 Component({
   properties: {
     data: { type: Object, value: {} },
-    isFavorited: { type: Boolean, value: false },
   },
 
   data: {
     statusColor: '',
-    statusBg: '',
     cardBg: '',
     statusText: '',
     seasonText: '',
@@ -69,20 +66,6 @@ Component({
       const { data } = this.data;
       if (!data || !data.cover) return;
       this.setData({ coverUrl: getCachedImage(data.cover) });
-    },
-
-    onFavoriteTap(e) {
-      // 阻止冒泡
-      const id = this.data.data.id;
-      const newFavorites = toggleFavorite(id);
-      this.triggerEvent('favoritechange', { id, isFavorited: newFavorites.includes(id) });
-    },
-
-    onCardTap() {
-      const id = this.data.data.id;
-      wx.navigateTo({
-        url: `/pages/route-detail/route-detail?id=${id}`,
-      });
     },
   },
 });

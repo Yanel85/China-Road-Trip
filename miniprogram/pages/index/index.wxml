@@ -1,44 +1,95 @@
-<!--首页 - 对应原项目 ResponsiveHome 移动端部分-->
+<!--首页 - 地图 + 底部路线列表面板-->
 <view class="page-container">
-  <!-- 搜索栏 -->
-  <search-bar value="{{query}}" bindinput="onSearchInput" placeholder="搜索你想去的景点或路线..." />
+  <!-- 地图 -->
+  <map
+    id="mainMap"
+    class="main-map"
+    latitude="{{latitude}}"
+    longitude="{{longitude}}"
+    scale="{{scale}}"
+    markers="{{mapMarkers}}"
+    polyline="{{mapPolyline}}"
+    enable-zoom
+    enable-scroll
+  >
+  </map>
 
-  <!-- 标签筛选 -->
-  <view class="tags-section" wx:if="{{allTags.length > 0}}">
-    <view class="tags-list">
-      <view
-        wx:for="{{allTags}}"
-        wx:key="*this"
-        class="tag-item {{selectedTag === item ? 'tag-active' : ''}}"
-        data-tag="{{item}}"
-        bindtap="onTagTap"
-      >
-        {{item}}
-      </view>
+  <!-- 底部面板 -->
+  <view class="bottom-sheet {{sheetExpanded ? 'expanded' : ''}}">
+    <!-- 拖拽条 -->
+    <view class="drag-handle" bindtap="onToggleSheet">
+      <view class="drag-bar"></view>
     </view>
-  </view>
 
-  <!-- 路线列表 -->
-  <view class="route-list" wx:if="{{!loading}}">
-    <block wx:for="{{filteredRoutes}}" wx:key="id">
-      <view class="route-item" data-id="{{item.id}}" bindtap="onRouteTap">
-        <route-card data="{{item}}" is-favorited="{{favorites.indexOf(item.id) > -1}}" bindfavoritechange="onFavoriteChange" />
-      </view>
-    </block>
-
-    <!-- 空状态 -->
-    <view class="empty-state" wx:if="{{filteredRoutes.length === 0}}">
-      <text class="empty-text">没有找到相关的匹配结果</text>
+    <!-- 标题行 -->
+    <view class="sheet-header" bindtap="onToggleSheet">
+      <text class="sheet-title">路线列表</text>
+      <text class="sheet-count" wx:if="{{checkedIds.length > 0}}">已选 {{checkedIds.length}} 条线路</text>
     </view>
-  </view>
 
-  <!-- 加载状态 -->
-  <view class="loading-state" wx:if="{{loading}}">
-    <view class="loading-skeleton" wx:for="{{[1,2,3]}}" wx:key="*this">
-      <view class="skeleton-image"></view>
-      <view class="skeleton-content">
-        <view class="skeleton-title"></view>
-        <view class="skeleton-subtitle"></view>
+    <!-- 展开内容 -->
+    <view class="sheet-content" wx:if="{{sheetExpanded}}">
+      <!-- 标签筛选 -->
+      <view class="tags-section" wx:if="{{allTags.length > 0}}">
+        <view class="tags-list">
+          <view
+            wx:for="{{allTags}}"
+            wx:key="*this"
+            class="tag-item {{selectedTag === item ? 'tag-active' : ''}}"
+            data-tag="{{item}}"
+            bindtap="onTagTap"
+          >
+            {{item}}
+          </view>
+        </view>
+      </view>
+
+      <!-- 路线列表 -->
+      <view class="route-list" wx:if="{{!loading}}">
+        <view
+          wx:for="{{filteredRoutes}}"
+          wx:key="id"
+          class="route-item"
+        >
+          <view class="route-card-row">
+            <!-- 左侧查看详情按钮 -->
+            <view class="detail-btn" data-id="{{item.id}}" catchtap="onRouteTap">
+              <text class="detail-btn-text">详情</text>
+            </view>
+            <!-- 卡片内容 -->
+            <view class="route-card-body">
+              <image src="{{item.cover}}" mode="aspectFill" class="route-thumb" />
+              <view class="route-info">
+                <text class="route-name">{{item.title}}</text>
+                <text class="route-season" wx:if="{{item.season && item.season.length > 0}}">{{item.season.join('/')}}</text>
+                <view class="route-meta-row">
+                  <text class="route-distance">{{item.distance}} km</text>
+                  <text class="route-status">{{item.status}}</text>
+                </view>
+              </view>
+            </view>
+            <!-- 右侧勾选框 -->
+            <view class="check-box {{checkedIds.indexOf(item.id) > -1 ? 'checked' : ''}}" data-id="{{item.id}}" catchtap="onCheckTap">
+              <text class="check-icon" wx:if="{{checkedIds.indexOf(item.id) > -1}}">✓</text>
+            </view>
+          </view>
+        </view>
+
+        <!-- 空状态 -->
+        <view class="empty-state" wx:if="{{filteredRoutes.length === 0}}">
+          <text class="empty-text">没有找到相关的匹配结果</text>
+        </view>
+      </view>
+
+      <!-- 加载状态 -->
+      <view class="loading-state" wx:if="{{loading}}">
+        <view class="loading-skeleton" wx:for="{{[1,2,3]}}" wx:key="*this">
+          <view class="skeleton-image"></view>
+          <view class="skeleton-content">
+            <view class="skeleton-title"></view>
+            <view class="skeleton-subtitle"></view>
+          </view>
+        </view>
       </view>
     </view>
   </view>

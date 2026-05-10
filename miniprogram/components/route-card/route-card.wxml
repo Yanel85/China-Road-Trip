@@ -1,5 +1,5 @@
-<!--路线卡片 - 对应原项目 RouteCard-->
-<view class="route-card {{cardBg}} {{data.status && (data.status.includes('封闭') || data.status.includes('closed')) ? 'card-closed' : ''}}" bindtap="onCardTap">
+<!--路线卡片-->
+<view class="route-card {{cardBg}} {{data.status && (data.status.includes('封闭') || data.status.includes('closed')) ? 'card-closed' : ''}}">
   <!-- 封面图 -->
   <view class="card-image-wrap">
     <image src="{{coverUrl || data.cover}}" mode="aspectFill" class="card-image" />
@@ -10,10 +10,6 @@
   <view class="card-info">
     <view class="card-title-row">
       <text class="card-title">{{data.title}}</text>
-      <!-- 收藏按钮 -->
-      <view class="fav-btn {{isFavorited ? 'fav-active' : ''}}" catchtap="onFavoriteTap">
-        <text class="fav-icon">{{isFavorited ? '♥' : '♡'}}</text>
-      </view>
     </view>
 
     <!-- 季节 -->
