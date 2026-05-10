@@ -19,6 +19,7 @@ Page({
     scale: 6,
 
     polyline: [],
+    markers: [],
   },
 
   onLoad(options) {
@@ -193,29 +194,45 @@ Page({
     this.setData({ isExpanded: !this.data.isExpanded });
   },
 
-  // POI 点击 - 地图跳转到该位置
+  // POI 点击 - 地图跳转到该位置，显示 marker
   onPOITap(e) {
     const poi = e.currentTarget.dataset.poi;
-    const poiImageUrl = (poi.images && poi.images.length > 0) ? poi.images[0] : '';
 
-    // 地图转向到该 POI 位置
+    const updates = { selectedPOI: poi, isExpanded: false };
+
     if (poi.coordinates && poi.coordinates.includes(',')) {
       const coords = parseCoordinates(poi.coordinates);
       if (coords) {
-        this.setData({
+        updates.latitude = coords[0];
+        updates.longitude = coords[1];
+        updates.scale = 12;
+        updates.markers = [{
+          id: 1,
           latitude: coords[0],
           longitude: coords[1],
-          scale: 12,
-        });
+          width: 32,
+          height: 40,
+          callout: {
+            content: poi.title,
+            color: '#111827',
+            fontSize: 13,
+            borderRadius: 6,
+            borderWidth: 1,
+            borderColor: '#e5e7eb',
+            bgColor: '#ffffff',
+            padding: 6,
+            display: 'ALWAYS',
+          },
+        }];
       }
     }
 
-    this.setData({ selectedPOI: poi, poiImageUrl, isExpanded: false });
+    this.setData(updates);
   },
 
-  // 关闭 POI 详情
+  // 关闭 POI 详情，移除 marker
   onClosePOI() {
-    this.setData({ selectedPOI: null });
+    this.setData({ selectedPOI: null, markers: [] });
   },
 
   // 导航

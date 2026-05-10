@@ -226,18 +226,9 @@
   border-radius: 24rpx;
   overflow: hidden;
   box-shadow: 0 8rpx 40rpx rgba(0, 0, 0, 0.2);
-}
-
-.poi-popup-image {
   position: relative;
-  width: 100%;
-  height: 256rpx;
 }
 
-.poi-popup-img {
-  width: 100%;
-  height: 100%;
-}
 
 .poi-popup-type {
   position: absolute;
@@ -268,33 +259,33 @@
 
 .poi-popup-close-noimg {
   position: absolute;
-  top: 26rpx;
-  right: 26rpx;
-  width: 66rpx;
-  height: 66rpx;
-  background-color: #494949;
-  color: #fdfdfd;
+  top: 16rpx;
+  right: 16rpx;
+  width: 56rpx;
+  height: 56rpx;
+  background-color: rgba(0, 0, 0, 0.4);
+  color: #ffffff;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 32rpx;
+  font-size: 28rpx;
   z-index: 10;
 }
 
 .poi-popup-info {
-  padding: 42rpx;
+  padding: 24rpx 28rpx;
 }
 
 .poi-popup-title-row {
   display: flex;
   align-items: center;
-  gap: 16rpx;
-  margin-bottom: 16rpx;
+  gap: 12rpx;
+  margin-bottom: 12rpx;
 }
 
 .poi-popup-title {
-  font-size: 32rpx;
+  font-size: 30rpx;
   font-weight: bold;
   color: #111827;
   flex: 1;
@@ -308,16 +299,17 @@
   font-weight: 600;
   background-color: #f3f4f6;
   color: #4b5563;
-  padding: 4rpx 12rpx;
+  padding: 4rpx 10rpx;
   border-radius: 8rpx;
   flex-shrink: 0;
+  margin-right: 330rpx;
 }
 
 .poi-popup-desc {
   font-size: 24rpx;
   color: #4b5563;
-  line-height: 1.6;
-  margin-bottom: 32rpx;
+  line-height: 1.5;
+  margin-bottom: 20rpx;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
@@ -325,10 +317,10 @@
 }
 
 .poi-popup-nav {
-  width: 50%;
-  padding: 16rpx;
+  width: 45%;
+  padding: 14rpx 0;
   background-color: var(--color-brand);
-  border-radius: 16rpx;
+  border-radius: 14rpx;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -336,7 +328,7 @@
 
 .nav-text {
   color: #ffffff;
-  font-size: 28rpx;
+  font-size: 26rpx;
   font-weight: 500;
 }
 
