@@ -30,9 +30,9 @@ Page({
     loading: true,
     filteredRoutes: [],
     checkedIds: [],
-    latitude: 33.5,
-    longitude: 100.0,
-    scale: 5,
+    latitude: 19.5,
+    longitude: 97.5,
+    scale: 4,
     mapPolyline: [],
     mapMarkers: [],
     sheetExpanded: true,
@@ -124,7 +124,7 @@ Page({
   onClearChecked() {
     const checkedIds = [];
     const filteredRoutes = this.data.filteredRoutes.map((r) => ({ ...r, _checked: false }));
-    this.setData({ checkedIds, filteredRoutes, mapPolyline: [], mapMarkers: [], latitude: 33.5, longitude: 100.0, scale: 5 });
+    this.setData({ checkedIds, filteredRoutes, mapPolyline: [], mapMarkers: [], latitude: 19.5, longitude: 97.5, scale: 4 });
     this.saveChecked(checkedIds);
   },
 
@@ -156,7 +156,7 @@ Page({
   async updateMapForChecked() {
     const { checkedIds, routes } = this.data;
     if (checkedIds.length === 0) {
-      this.setData({ mapPolyline: [], mapMarkers: [], latitude: 33.5, longitude: 100.0, scale: 5 });
+      this.setData({ mapPolyline: [], mapMarkers: [], latitude: 19.5, longitude: 97.5, scale: 4 });
       return;
     }
 
