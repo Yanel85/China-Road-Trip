@@ -75,14 +75,15 @@
 }
 
 /* 标签 */
-.tags-section {
+.tags-scroll {
   margin-bottom: 8rpx;
 }
 
 .tags-list {
-  display: flex;
-  flex-wrap: wrap;
+  display: inline-flex;
+  white-space: nowrap;
   gap: 12rpx;
+  padding: 4rpx 0;
 }
 
 .tag-item {
@@ -122,24 +123,6 @@
   box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
 }
 
-/* 左侧详情按钮 */
-.detail-btn {
-  width: 56rpx;
-  height: 56rpx;
-  border-radius: 50%;
-  background-color: #f3f4f6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.detail-btn-text {
-  font-size: 20rpx;
-  font-weight: 600;
-  color: #6b7280;
-}
-
 /* 卡片内容 */
 .route-card-body {
   display: flex;
@@ -148,12 +131,40 @@
   gap: 12rpx;
 }
 
-.route-thumb {
+/* 图片 + 详情按钮 */
+.thumb-wrap {
+  position: relative;
+  flex-shrink: 0;
   width: 100rpx;
   height: 100rpx;
   border-radius: 12rpx;
-  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.route-thumb {
+  width: 100%;
+  height: 100%;
+  display: block;
   background-color: #f3f4f6;
+}
+
+/* 详情按钮 - 图片底部橙色 */
+.detail-btn {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 32rpx;
+  background-color: #F39C12;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.detail-btn-text {
+  font-size: 18rpx;
+  font-weight: 600;
+  color: #ffffff;
 }
 
 .route-info {
@@ -212,8 +223,8 @@
 }
 
 .check-box.checked {
-  background-color: #F39C12;
-  border-color: #F39C12;
+  background-color: #22c55e;
+  border-color: #22c55e;
 }
 
 .check-icon {

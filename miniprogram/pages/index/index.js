@@ -11,17 +11,11 @@ Page({
     loading: true,
     filteredRoutes: [],
     checkedIds: [],
-    // 地图
     latitude: 33.5,
     longitude: 100.0,
     scale: 5,
-    mapMarkers: [],
     mapPolyline: [],
-    // 底部面板
-    sheetExpanded: false,
-    // POI 详情弹窗
-    selectedPOI: null,
-    poiImageUrl: '',
+    sheetExpanded: true,
   },
 
   onLoad() {
@@ -35,10 +29,22 @@ Page({
 
   loadData() {
     this.setData({ loading: true });
-    getRoutes().then((routes) => {
-      const allTags = [...new Set(routes.flatMap((r) => r.tags))].filter(Boolean);
-      this.setData({ routes, allTags, loading: false }, () => {
-        this.updateFilteredRoutes();
+    return getRoutes().then((routes) => {
+      routes.forEach((r) => { r.id = String(r.id); });
+      // 预缓存所有封面图
+      const coverUrls = routes.map((r) => r.cover).filter(Boolean);
+      return precacheImages(coverUrls).then(() => {
+        // 缓存完成后，用本地路径替换 URL
+        routes.forEach((r) => {
+          if (r.cover) {
+            const cached = getCachedImage(r.cover);
+            if (cached) r._coverPath = cached;
+          }
+        });
+        const allTags = [...new Set(routes.flatMap((r) => r.tags))].filter(Boolean);
+        this.setData({ routes, allTags, loading: false }, () => {
+          this.updateFilteredRoutes();
+        });
       });
     }).catch((err) => {
       console.error('Failed to load data:', err);
@@ -87,8 +93,7 @@ Page({
   },
 
   onCheckTap(e) {
-    const id = e.currentTarget.dataset.id;
-    // 阻止冒泡到 onRouteTap
+    const id = String(e.currentTarget.dataset.id);
     let checkedIds = [...this.data.checkedIds];
     if (checkedIds.includes(id)) {
       checkedIds = checkedIds.filter((c) => c !== id);
@@ -103,12 +108,10 @@ Page({
   async updateMapForChecked() {
     const { checkedIds, routes } = this.data;
     if (checkedIds.length === 0) {
-      this.setData({ mapMarkers: [], mapPolyline: [] });
+      this.setData({ mapPolyline: [] });
       return;
     }
 
-    // 为每条勾选的线路获取 POI
-    const allMarkers = [];
     const allPolylines = [];
 
     for (const routeId of checkedIds) {
@@ -117,8 +120,6 @@ Page({
 
       try {
         const pois = await getRoutePOIs(routeId);
-
-        // polyline 按 routeSequence 顺序
         const routePoiIds = route.routeSequence || [];
         const routePoisMap = {};
         pois.forEach((p) => { routePoisMap[p.poiId] = p; });
@@ -140,28 +141,12 @@ Page({
             arrowLine: true,
           });
         }
-
-        // POI 标记（全部 POI）
-        pois.forEach((p) => {
-          if (p.coordinates && p.coordinates.includes(',')) {
-            const coords = parseCoordinates(p.coordinates);
-            if (coords) {
-              allMarkers.push({
-                id: `${routeId}_${p.poiId}`,
-                poiId: p.poiId,
-                title: p.title,
-                latitude: coords[0],
-                longitude: coords[1],
-              });
-            }
-          }
-        });
       } catch (err) {
         console.error(`Failed to load POIs for route ${routeId}:`, err);
       }
     }
 
-    this.setData({ mapMarkers: allMarkers, mapPolyline: allPolylines });
+    this.setData({ mapPolyline: allPolylines });
   },
 
   // ===== 搜索和筛选 =====
@@ -188,17 +173,6 @@ Page({
 
   onToggleSheet() {
     this.setData({ sheetExpanded: !this.data.sheetExpanded });
-  },
-
-  // ===== 地图 marker 点击 =====
-
-  onMarkerTap(e) {
-    const markerId = e.markerId;
-    const marker = this.data.mapMarkers.find((m) => String(m.id) === String(markerId));
-    if (marker) {
-      // 简单显示标题 callout
-      wx.showToast({ title: marker.title, icon: 'none' });
-    }
   },
 
   onPullDownRefresh() {

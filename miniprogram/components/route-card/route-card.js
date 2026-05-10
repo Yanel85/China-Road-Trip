@@ -1,4 +1,4 @@
-const { getCachedImage } = require('../../lib/notion');
+const { getCachedImage, precacheImages } = require('../../lib/notion');
 
 Component({
   properties: {
@@ -65,7 +65,18 @@ Component({
     updateCover() {
       const { data } = this.data;
       if (!data || !data.cover) return;
-      this.setData({ coverUrl: getCachedImage(data.cover) });
+      // 先同步检查本地缓存
+      const cached = getCachedImage(data.cover);
+      if (cached) {
+        this.setData({ coverUrl: cached });
+        return;
+      }
+      // 没有缓存则异步下载，完成后更新
+      this.setData({ coverUrl: '' });
+      precacheImages([data.cover]).then(() => {
+        const path = getCachedImage(data.cover);
+        if (path) this.setData({ coverUrl: path });
+      }).catch(() => {});
     },
   },
 });

@@ -165,11 +165,14 @@ function getMockPOIs() {
 
 /**
  * 图片缓存 - 使用 wx.downloadFile + 文件系统实现本地缓存，有效期一个月
+ * 图片链接 15 分钟失效，所以需要立即下载到本地
  */
 const IMAGE_CACHE_DIR = `${wx.env.USER_DATA_PATH}/image_cache`;
 const IMAGE_CACHE_TTL = 30 * 24 * 60 * 60 * 1000; // 一个月
 const IMAGE_CACHE_MANIFEST = `${IMAGE_CACHE_DIR}/manifest.json`;
 let imageManifest = null;
+// 记录下载失败的 URL，不再重试
+const failedUrls = new Set();
 
 function ensureCacheDir() {
   try {
@@ -208,6 +211,9 @@ function urlToFilename(url) {
   return `${Math.abs(hash)}${ext ? '.' + ext[1].toLowerCase() : '.jpg'}`;
 }
 
+/**
+ * 同步获取已缓存的本地路径，未缓存返回 null
+ */
 function getCachedImagePath(url) {
   const manifest = loadManifest();
   const entry = manifest[url];
@@ -220,8 +226,15 @@ function getCachedImagePath(url) {
   return entry.path;
 }
 
+/**
+ * 下载图片到本地缓存，失败时记录到 failedUrls 不再重试
+ */
 function downloadAndCacheImage(url) {
   return new Promise((resolve, reject) => {
+    if (failedUrls.has(url)) {
+      reject(new Error('Previously failed URL'));
+      return;
+    }
     ensureCacheDir();
     const filename = urlToFilename(url);
     const filePath = `${IMAGE_CACHE_DIR}/${filename}`;
@@ -249,37 +262,42 @@ function downloadAndCacheImage(url) {
           saveManifest();
           resolve(filePath);
         } else {
+          failedUrls.add(url);
           reject(new Error(`Download failed: ${res.statusCode}`));
         }
       },
-      fail: reject,
+      fail: (err) => {
+        failedUrls.add(url);
+        reject(err);
+      },
     });
   });
 }
 
 /**
- * 获取图片的本地缓存路径，如果没有缓存则返回原始 URL
+ * 批量预缓存图片，返回 Promise 在全部完成后 resolve
+ * 失败的 URL 不缓存，也不会阻塞其他图片
+ */
+function precacheImages(urls) {
+  if (!Array.isArray(urls)) return Promise.resolve();
+  const tasks = urls
+    .filter((u) => u && u.startsWith('http'))
+    .map((url) => {
+      const cached = getCachedImagePath(url);
+      if (cached) return Promise.resolve();
+      return downloadAndCacheImage(url).catch(() => {});
+    });
+  return Promise.all(tasks);
+}
+
+/**
+ * 获取图片的本地缓存路径，未缓存时返回空字符串
+ * 使用 precacheImages 后再调用此函数即可获取本地路径
  */
 function getCachedImage(url) {
   if (!url || !url.startsWith('http')) return url;
   const cached = getCachedImagePath(url);
-  if (cached) return cached;
-  // 异步缓存，不阻塞渲染
-  downloadAndCacheImage(url).catch(() => {});
-  return url;
-}
-
-/**
- * 批量预缓存图片
- */
-function precacheImages(urls) {
-  if (!Array.isArray(urls)) return;
-  urls.filter((u) => u && u.startsWith('http')).forEach((url) => {
-    const cached = getCachedImagePath(url);
-    if (!cached) {
-      downloadAndCacheImage(url).catch(() => {});
-    }
-  });
+  return cached || '';
 }
 
 module.exports = {

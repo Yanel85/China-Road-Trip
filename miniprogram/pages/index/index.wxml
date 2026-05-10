@@ -7,7 +7,6 @@
     latitude="{{latitude}}"
     longitude="{{longitude}}"
     scale="{{scale}}"
-    markers="{{mapMarkers}}"
     polyline="{{mapPolyline}}"
     enable-zoom
     enable-scroll
@@ -30,7 +29,7 @@
     <!-- 展开内容 -->
     <view class="sheet-content" wx:if="{{sheetExpanded}}">
       <!-- 标签筛选 -->
-      <view class="tags-section" wx:if="{{allTags.length > 0}}">
+      <scroll-view scroll-x class="tags-scroll" wx:if="{{allTags.length > 0}}">
         <view class="tags-list">
           <view
             wx:for="{{allTags}}"
@@ -42,7 +41,7 @@
             {{item}}
           </view>
         </view>
-      </view>
+      </scroll-view>
 
       <!-- 路线列表 -->
       <view class="route-list" wx:if="{{!loading}}">
@@ -52,13 +51,15 @@
           class="route-item"
         >
           <view class="route-card-row">
-            <!-- 左侧查看详情按钮 -->
-            <view class="detail-btn" data-id="{{item.id}}" catchtap="onRouteTap">
-              <text class="detail-btn-text">详情</text>
-            </view>
             <!-- 卡片内容 -->
             <view class="route-card-body">
-              <image src="{{item.cover}}" mode="aspectFill" class="route-thumb" />
+              <!-- 图片 + 详情按钮 -->
+              <view class="thumb-wrap">
+                <image src="{{item._coverPath || item.cover}}" mode="aspectFill" class="route-thumb" />
+                <view class="detail-btn" data-id="{{item.id}}" catchtap="onRouteTap">
+                  <text class="detail-btn-text">详情</text>
+                </view>
+              </view>
               <view class="route-info">
                 <text class="route-name">{{item.title}}</text>
                 <text class="route-season" wx:if="{{item.season && item.season.length > 0}}">{{item.season.join('/')}}</text>
