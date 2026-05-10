@@ -198,8 +198,8 @@ Page({
             id: i + 1,
             latitude: mid.latitude,
             longitude: mid.longitude,
-            width: 24,
-            height: 24,
+            width: 14,
+            height: 20,
             callout: {
               content: route._shortName || route.title,
               color: '#ffffff',

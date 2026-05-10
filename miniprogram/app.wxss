@@ -1,4 +1,4 @@
-/* 全局样式 - 对应原项目 globals.css */
+/* 全局样式 */
 page {
   --color-background: #F8F9FA;
   --color-card: #FFFFFF;
@@ -17,33 +17,6 @@ page {
   background-color: var(--color-background);
   -webkit-font-smoothing: antialiased;
 }
-
-/* 安全区适配 */
-.pb-safe {
-  padding-bottom: env(safe-area-inset-bottom);
-}
-
-.pt-safe {
-  padding-top: env(safe-area-inset-top);
-}
-
-/* 通用工具类 */
-.bg-background { background-color: var(--color-background); }
-.bg-card { background-color: var(--color-card); }
-.bg-brand { background-color: var(--color-brand); }
-.bg-success { background-color: var(--color-success); }
-.bg-warning { background-color: var(--color-warning); }
-.bg-danger { background-color: var(--color-danger); }
-
-.text-brand { color: var(--color-brand); }
-.text-success { color: var(--color-success); }
-.text-warning { color: var(--color-warning); }
-.text-danger { color: var(--color-danger); }
-
-.shadow-card { box-shadow: var(--shadow-card); }
-.shadow-sheet { box-shadow: var(--shadow-sheet); }
-
-.rounded-20 { border-radius: var(--radius-20); }
 
 /* 隐藏滚动条 */
 ::-webkit-scrollbar { display: none; }

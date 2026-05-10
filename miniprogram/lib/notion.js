@@ -6,7 +6,6 @@ const BASE_URL = 'https://chinaroadtrip.xwabc.cn/api';
 const CACHE_TTL = 60 * 1000; // 1分钟缓存
 
 let routesCache = null;
-let poisCache = null;
 
 function request(url) {
   return new Promise((resolve, reject) => {
@@ -55,26 +54,6 @@ function getRoutes() {
 }
 
 /**
- * 获取所有 POI
- */
-function getAllPOIs() {
-  const now = Date.now();
-  if (poisCache && now - poisCache.timestamp < CACHE_TTL) {
-    return Promise.resolve(poisCache.data);
-  }
-
-  return request(`${BASE_URL}/pois`)
-    .then((data) => {
-      poisCache = { data: data || [], timestamp: Date.now() };
-      return data || [];
-    })
-    .catch((err) => {
-      console.error('Failed to fetch POIs:', err);
-      return getMockPOIs();
-    });
-}
-
-/**
  * 根据 ID 获取路线
  */
 function getRouteById(id) {
@@ -119,53 +98,8 @@ function getMockRoutes() {
   ];
 }
 
-function getMockPOIs() {
-  return [
-    {
-      id: 'poi_1',
-      poiId: 'S001',
-      title: '折多山垭口',
-      type: '垭口',
-      sequence: 1,
-      coordinates: '30.078,101.801',
-      roadStatus: '拥堵',
-      liveUpdate: new Date().toISOString(),
-      altitude: 4298,
-      images: ['https://picsum.photos/seed/zheduo/400/300'],
-      description: '川藏线第一座雪山垭口，康巴第一关，海拔4298米，风景壮丽但路况复杂。',
-    },
-    {
-      id: 'poi_2',
-      poiId: 'D001',
-      title: '新都桥',
-      type: '地点',
-      sequence: 2,
-      coordinates: '29.873,101.503',
-      roadStatus: '畅通',
-      liveUpdate: new Date().toISOString(),
-      altitude: 3300,
-      images: ['https://picsum.photos/seed/xindouqiao/400/300'],
-      description: '光影变换迷人的摄影家天堂，秋季景色最为美丽。',
-    },
-    {
-      id: 'poi_3',
-      poiId: 'D002',
-      title: '理塘高城',
-      type: '地点',
-      sequence: 3,
-      coordinates: '29.996,100.270',
-      roadStatus: '畅通',
-      liveUpdate: new Date().toISOString(),
-      altitude: 4014,
-      images: ['https://picsum.photos/seed/litang/400/300'],
-      description: '世界高城，天空之城，仓央嘉措的故乡，可作补给点。',
-    },
-  ];
-}
-
 module.exports = {
   getRoutes,
-  getAllPOIs,
   getRouteById,
   getRoutePOIs,
 };
