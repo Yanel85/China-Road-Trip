@@ -43,7 +43,9 @@ Page({
 
   onShow() {
     const checkedIds = this.getChecked();
-    this.setData({ checkedIds });
+    this.setData({ checkedIds }, () => {
+      this.syncCheckedFlags();
+    });
   },
 
   loadData() {
@@ -86,7 +88,9 @@ Page({
       return getStatusScore(a.status) - getStatusScore(b.status);
     });
 
-    this.setData({ filteredRoutes: filtered });
+    this.setData({ filteredRoutes: filtered }, () => {
+      this.syncCheckedFlags();
+    });
   },
 
   // ===== 勾选线路 =====
@@ -104,6 +108,23 @@ Page({
     wx.setStorageSync(CHECKED_KEY, JSON.stringify(ids));
   },
 
+  // 将 checkedIds 状态同步到 filteredRoutes 每个 item 的 _checked 属性
+  syncCheckedFlags() {
+    const checkedSet = new Set(this.data.checkedIds);
+    const filteredRoutes = this.data.filteredRoutes.map((r) => ({
+      ...r,
+      _checked: checkedSet.has(r.id),
+    }));
+    this.setData({ filteredRoutes });
+  },
+
+  onClearChecked() {
+    const checkedIds = [];
+    const filteredRoutes = this.data.filteredRoutes.map((r) => ({ ...r, _checked: false }));
+    this.setData({ checkedIds, filteredRoutes, mapPolyline: [], latitude: 33.5, longitude: 100.0, scale: 5 });
+    this.saveChecked(checkedIds);
+  },
+
   onCheckTap(e) {
     const id = String(e.currentTarget.dataset.id);
     let checkedIds = [...this.data.checkedIds];
@@ -114,6 +135,7 @@ Page({
     }
     this.setData({ checkedIds });
     this.saveChecked(checkedIds);
+    this.syncCheckedFlags();
     this.updateMapForChecked();
   },
 

@@ -52,8 +52,8 @@
 .sheet-header {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 6rpx;
+  justify-content: space-between;
+  padding: 6rpx 86rpx;
   margin-bottom: 6rpx;
   box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.1);
 }
@@ -64,9 +64,27 @@
   color: #111827;
 }
 
+.sheet-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
 .sheet-count {
   font-size: 22rpx;
   color: #6b7280;
+}
+
+.clear-btn {
+  background-color: #fee2e2;
+  border-radius: 20rpx;
+  padding: 2rpx 16rpx;
+}
+
+.clear-btn-text {
+  font-size: 24rpx;
+  color: #dc2626;
+  font-weight: 600;
 }
 
 /* 面板内容 */
@@ -114,6 +132,10 @@
 
 .route-item {
   position: relative;
+}
+
+.route-item.item-checked .route-card-row {
+  background-color: #f0fdf4;
 }
 
 .route-card-row {
@@ -197,11 +219,6 @@
 .route-info-left {
   flex: 1;
   min-width: 0;
-}
-
-.info-checked {
-  background-color: #f0fdf4;
-  border-radius: 12rpx;
 }
 
 .route-name {

@@ -23,7 +23,12 @@
     <!-- 标题行 -->
     <view class="sheet-header" bindtap="onToggleSheet">
       <text class="sheet-title">路线列表</text>
-      <text class="sheet-count" wx:if="{{checkedIds.length > 0}}">已显示 {{checkedIds.length}} 条线路</text>
+      <view class="sheet-header-right" wx:if="{{checkedIds.length > 0}}">
+        <text class="sheet-count">已选 {{checkedIds.length}} 条</text>
+        <view class="clear-btn" catchtap="onClearChecked">
+          <text class="clear-btn-text">清除</text>
+        </view>
+      </view>
     </view>
 
     <!-- 展开内容 -->
@@ -48,7 +53,7 @@
         <view
           wx:for="{{filteredRoutes}}"
           wx:key="id"
-          class="route-item"
+          class="route-item {{item._checked ? 'item-checked' : ''}}"
         >
           <view class="route-card-row">
             <!-- 蓝底白字简称 + 详情按钮（点击查看详情） -->
@@ -61,7 +66,7 @@
               </view>
             </view>
             <!-- 信息区 + 勾选框（点击勾选） -->
-            <view class="route-info {{checkedIds.indexOf(item.id) > -1 ? 'info-checked' : ''}}" data-id="{{item.id}}" catchtap="onCheckTap">
+            <view class="route-info" data-id="{{item.id}}" catchtap="onCheckTap">
               <view class="route-info-left">
                 <text class="route-name">{{item.title}}</text>
                 <text class="route-season" wx:if="{{item.season && item.season.length > 0}}">{{item.season.join('/')}}</text>
@@ -70,8 +75,8 @@
                   <text class="route-status">{{item.status}}</text>
                 </view>
               </view>
-              <view class="check-box {{checkedIds.indexOf(item.id) > -1 ? 'checked' : ''}}">
-                <text class="check-icon" wx:if="{{checkedIds.indexOf(item.id) > -1}}">✓</text>
+              <view class="check-box {{item._checked ? 'checked' : ''}}">
+                <text class="check-icon" wx:if="{{item._checked}}">✓</text>
               </view>
             </view>
           </view>
