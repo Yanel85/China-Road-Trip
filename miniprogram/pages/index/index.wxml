@@ -23,7 +23,7 @@
     <!-- 标题行 -->
     <view class="sheet-header" bindtap="onToggleSheet">
       <text class="sheet-title">路线列表</text>
-      <text class="sheet-count" wx:if="{{checkedIds.length > 0}}">已选 {{checkedIds.length}} 条线路</text>
+      <text class="sheet-count" wx:if="{{checkedIds.length > 0}}">已显示 {{checkedIds.length}} 条线路</text>
     </view>
 
     <!-- 展开内容 -->

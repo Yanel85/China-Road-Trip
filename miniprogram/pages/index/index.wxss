@@ -275,12 +275,12 @@
 
 /* 底部提示 */
 .footer-tip {
-  margin: 2rpx 28rpx;
+  margin: 8rpx 28rpx;
   padding: 10rpx;
   text-align: center;
   border: 2rpx dashed #d1d5db;
   border-radius: 26rpx;
-  background-color: #f8ef6d;
+  background-color: #fbf48d;
 }
 
 .footer-tip-text {

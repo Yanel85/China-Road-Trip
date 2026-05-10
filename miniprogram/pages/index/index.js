@@ -120,11 +120,12 @@ Page({
   async updateMapForChecked() {
     const { checkedIds, routes } = this.data;
     if (checkedIds.length === 0) {
-      this.setData({ mapPolyline: [] });
+      this.setData({ mapPolyline: [], latitude: 33.5, longitude: 100.0, scale: 5 });
       return;
     }
 
     const allPolylines = [];
+    let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
 
     for (const routeId of checkedIds) {
       const route = routes.find((r) => String(r.id) === String(routeId));
@@ -152,13 +153,36 @@ Page({
             width: 3,
             arrowLine: true,
           });
+          points.forEach((pt) => {
+            if (pt.latitude < minLat) minLat = pt.latitude;
+            if (pt.latitude > maxLat) maxLat = pt.latitude;
+            if (pt.longitude < minLng) minLng = pt.longitude;
+            if (pt.longitude > maxLng) maxLng = pt.longitude;
+          });
         }
       } catch (err) {
         console.error(`Failed to load POIs for route ${routeId}:`, err);
       }
     }
 
-    this.setData({ mapPolyline: allPolylines });
+    const update = { mapPolyline: allPolylines };
+
+    if (allPolylines.length > 0 && minLat !== Infinity) {
+      const centerLat = (minLat + maxLat) / 2;
+      const centerLng = (minLng + maxLng) / 2;
+      const latSpan = maxLat - minLat;
+      const lngSpan = (maxLng - minLng) * Math.cos(centerLat * Math.PI / 180);
+      const maxSpan = Math.max(latSpan, lngSpan, 0.01);
+      const targetViewport = maxSpan / 0.8;
+      let scale = Math.ceil(3 + Math.log2(60 / targetViewport));
+      scale = Math.max(3, Math.min(20, scale));
+
+      update.latitude = centerLat;
+      update.longitude = centerLng;
+      update.scale = scale;
+    }
+
+    this.setData(update);
   },
 
   // ===== 搜索和筛选 =====
