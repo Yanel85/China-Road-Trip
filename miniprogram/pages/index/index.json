@@ -1,7 +1,5 @@
 {
   "navigationBarTitleText": "自驾路",
   "enablePullDownRefresh": true,
-  "usingComponents": {
-    "search-bar": "../../components/search-bar/search-bar"
-  }
+  "usingComponents": {}
 }

@@ -1,8 +1,7 @@
 {
   "pages": [
     "pages/index/index",
-    "pages/route-detail/route-detail",
-    "pages/poi-detail/poi-detail"
+    "pages/route-detail/route-detail"
   ],
   "window": {
     "navigationBarBackgroundColor": "#F8F9FA",
