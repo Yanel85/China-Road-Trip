@@ -1,4 +1,4 @@
-const { getRouteById, getRoutePOIs, getCachedImage, precacheImages } = require('../../lib/notion');
+const { getRouteById, getRoutePOIs } = require('../../lib/notion');
 const { parseCoordinates } = require('../../lib/geo');
 
 Page({
@@ -131,20 +131,6 @@ Page({
         seasonText = route.season;
       }
 
-      // 预缓存所有 POI 图片
-      const allImageUrls = pois.filter((p) => p.images && p.images.length > 0).flatMap((p) => p.images);
-      await precacheImages(allImageUrls);
-
-      // 用本地路径替换 POI 图片 URL
-      pois.forEach((p) => {
-        if (p.images && p.images.length > 0) {
-          p._imagePaths = p.images.map((url) => {
-            const cached = getCachedImage(url);
-            return cached || url;
-          });
-        }
-      });
-
       this.setData({
         route,
         pois,
@@ -210,7 +196,7 @@ Page({
   // POI 点击 - 地图跳转到该位置
   onPOITap(e) {
     const poi = e.currentTarget.dataset.poi;
-    const poiImageUrl = (poi._imagePaths && poi._imagePaths.length > 0) ? poi._imagePaths[0] : ((poi.images && poi.images.length > 0) ? getCachedImage(poi.images[0]) : '');
+    const poiImageUrl = (poi.images && poi.images.length > 0) ? poi.images[0] : '';
 
     // 地图转向到该 POI 位置
     if (poi.coordinates && poi.coordinates.includes(',')) {

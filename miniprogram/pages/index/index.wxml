@@ -51,9 +51,11 @@
           class="route-item"
         >
           <view class="route-card-row">
-            <!-- 图片 + 详情按钮（点击查看详情） -->
+            <!-- 蓝底白字简称 + 详情按钮（点击查看详情） -->
             <view class="thumb-wrap" data-id="{{item.id}}" catchtap="onRouteTap">
-              <image src="{{item._coverPath || item.cover}}" mode="aspectFill" class="route-thumb" />
+              <view class="route-thumb-text {{item._isAlphanumeric ? 'thumb-alpha' : 'thumb-cjk'}}">
+                <text class="route-thumb-label">{{item._shortName}}</text>
+              </view>
               <view class="detail-btn">
                 <text class="detail-btn-text">查看详情</text>
               </view>

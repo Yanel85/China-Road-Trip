@@ -1,7 +1,26 @@
-const { getRoutes, getRoutePOIs, getCachedImage, precacheImages } = require('../../lib/notion');
+const { getRoutes, getRoutePOIs } = require('../../lib/notion');
 const { parseCoordinates } = require('../../lib/geo');
 const { getCurrentSeason } = require('../../utils/index');
 const CHECKED_KEY = 'route_checked';
+
+// 截取线路简称：取｜前面部分，没有｜最多6字
+function getShortName(title) {
+  if (!title) return '';
+  const parts = title.split('｜');
+  let name = parts[0];
+  if (name.length > 6) name = name.substring(0, 6);
+  return name;
+}
+
+// 判断文字是否主要是中文/日文/韩文
+function hasCJK(str) {
+  return /[\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff]/.test(str);
+}
+
+// 判断文字是否主要是英文/数字（无CJK字符）
+function isAlphanumeric(str) {
+  return str.length > 0 && !hasCJK(str);
+}
 
 Page({
   data: {
@@ -31,20 +50,13 @@ Page({
     this.setData({ loading: true });
     return getRoutes().then((routes) => {
       routes.forEach((r) => { r.id = String(r.id); });
-      // 预缓存所有封面图
-      const coverUrls = routes.map((r) => r.cover).filter(Boolean);
-      return precacheImages(coverUrls).then(() => {
-        // 缓存完成后，用本地路径替换 URL
-        routes.forEach((r) => {
-          if (r.cover) {
-            const cached = getCachedImage(r.cover);
-            if (cached) r._coverPath = cached;
-          }
-        });
-        const allTags = [...new Set(routes.flatMap((r) => r.tags))].filter(Boolean);
-        this.setData({ routes, allTags, loading: false }, () => {
-          this.updateFilteredRoutes();
-        });
+      routes.forEach((r) => { 
+        r._shortName = getShortName(r.title);
+        r._isAlphanumeric = isAlphanumeric(r._shortName);
+      });
+      const allTags = [...new Set(routes.flatMap((r) => r.tags))].filter(Boolean);
+      this.setData({ routes, allTags, loading: false }, () => {
+        this.updateFilteredRoutes();
       });
     }).catch((err) => {
       console.error('Failed to load data:', err);
