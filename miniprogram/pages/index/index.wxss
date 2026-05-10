@@ -123,14 +123,6 @@
   box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.04);
 }
 
-/* 卡片内容 */
-.route-card-body {
-  display: flex;
-  flex: 1;
-  min-width: 0;
-  gap: 12rpx;
-}
-
 /* 图片 + 详情按钮 */
 .thumb-wrap {
   position: relative;
@@ -167,12 +159,24 @@
   color: #ffffff;
 }
 
+/* 信息区 + 勾选 */
 .route-info {
-  flex: 1;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
+  flex: 1;
   min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8rpx;
+}
+
+.route-info-left {
+  flex: 1;
+  min-width: 0;
+}
+
+.info-checked {
+  background-color: #f0fdf4;
+  border-radius: 12rpx;
 }
 
 .route-name {
