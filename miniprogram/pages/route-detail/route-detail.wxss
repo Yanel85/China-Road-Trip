@@ -75,6 +75,27 @@
   white-space: nowrap;
 }
 
+.sort-left {
+  display: flex;
+  align-items: center;
+  gap: 16rpx;
+}
+
+.feedback-btn {
+  font-size: 20rpx;
+  color: #3b82f6;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  border-radius: 0;
+  line-height: 2;
+}
+
+.feedback-btn::after {
+  border: none;
+}
+
 .route-meta {
   display: flex;
   align-items: center;
