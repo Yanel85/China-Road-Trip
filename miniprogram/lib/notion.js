@@ -1,16 +1,25 @@
 /**
- * 数据获取 - 通过 HTTP API 获取路线和 POI 数据
+ * 数据获取 - 通过 HTTP API 获取路线和 POI 数据，支持本地缓存兜底
  */
 
 const BASE_URL = 'https://chinaroadtrip.xwabc.cn/api';
-const CACHE_TTL = 60 * 1000; // 1分钟缓存
+const CACHE_TTL = 60 * 1000; // 1分钟内存缓存
+const LOCAL_KEY_ROUTES = 'cached_routes';
+const LOCAL_KEY_POIS = 'cached_pois_';
+const LOCAL_TTL = 7 * 24 * 60 * 60 * 1000; // 本地缓存有效期 7 天
+const REQUEST_TIMEOUT = 8000;
 
 let routesCache = null;
+let lastRoutesSource = 'none';
 
-function request(url) {
+/**
+ * 统一请求封装
+ */
+function request(url, retries = 0) {
   return new Promise((resolve, reject) => {
     wx.request({
       url,
+      timeout: REQUEST_TIMEOUT,
       success: (res) => {
         if (res.statusCode === 200) {
           resolve(res.data);
@@ -22,34 +31,85 @@ function request(url) {
         reject(err);
       },
     });
+  }).catch((err) => {
+    if (retries > 0) {
+      return request(url, retries - 1);
+    }
+    throw err;
+  });
+}
+
+/**
+ * 保存数据到本地缓存
+ */
+function saveToStorage(key, data) {
+  try {
+    wx.setStorageSync(key, {
+      data,
+      timestamp: Date.now(),
+    });
+  } catch (e) {
+    console.warn('Failed to save to local storage:', e);
+  }
+}
+
+/**
+ * 从本地缓存读取数据（检查有效期）
+ */
+function getFromStorage(key) {
+  try {
+    const stored = wx.getStorageSync(key);
+    if (!stored || !stored.data) return null;
+    if (Date.now() - stored.timestamp > LOCAL_TTL) return null;
+    return stored.data;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * 格式化路线数据
+ */
+function normalizeRoutes(routes) {
+  return routes.map((r) => {
+    if (r.season && typeof r.season === 'string') {
+      r.season = r.season.split(/[,，、]/).map((s) => s.trim()).filter(Boolean);
+    }
+    if (!Array.isArray(r.season)) r.season = [];
+    if (!Array.isArray(r.tags)) r.tags = [];
+    return r;
   });
 }
 
 /**
  * 获取所有路线
+ * 优先级：内存缓存 > 网络 > 本地缓存
  */
 function getRoutes() {
   const now = Date.now();
   if (routesCache && now - routesCache.timestamp < CACHE_TTL) {
+    lastRoutesSource = 'memory';
     return Promise.resolve(routesCache.data);
   }
 
-  return request(`${BASE_URL}/routes`)
+  return request(`${BASE_URL}/routes`, 1)
     .then((data) => {
-      const routes = Array.isArray(data) ? data : [];
-      routes.forEach((r) => {
-        if (r.season && typeof r.season === 'string') {
-          r.season = r.season.split(/[,，、]/).map((s) => s.trim()).filter(Boolean);
-        }
-        if (!Array.isArray(r.season)) r.season = [];
-        if (!Array.isArray(r.tags)) r.tags = [];
-      });
+      const routes = normalizeRoutes(Array.isArray(data) ? data : []);
+      saveToStorage(LOCAL_KEY_ROUTES, routes);
       routesCache = { data: routes, timestamp: Date.now() };
+      lastRoutesSource = 'network';
       return routes;
     })
     .catch((err) => {
       console.error('Failed to fetch routes:', err);
-      return getMockRoutes();
+      const cached = getFromStorage(LOCAL_KEY_ROUTES);
+      if (cached) {
+        routesCache = { data: cached, timestamp: Date.now() };
+        lastRoutesSource = 'local';
+        return cached;
+      }
+      lastRoutesSource = 'none';
+      return [];
     });
 }
 
@@ -64,42 +124,28 @@ function getRouteById(id) {
  * 获取指定路线的 POI 列表
  */
 function getRoutePOIs(routeId) {
-  return request(`${BASE_URL}/routes/${routeId}/pois`).then((data) => {
-    return Array.isArray(data) ? data : [];
-  }).catch((err) => {
-    console.error('Failed to fetch route POIs:', err);
-    return [];
-  });
+  return request(`${BASE_URL}/routes/${routeId}/pois`)
+    .then((data) => {
+      const pois = Array.isArray(data) ? data : [];
+      saveToStorage(LOCAL_KEY_POIS + routeId, pois);
+      return pois;
+    })
+    .catch((err) => {
+      console.error('Failed to fetch route POIs:', err);
+      const cached = getFromStorage(LOCAL_KEY_POIS + routeId);
+      if (cached) return cached;
+      return [];
+    });
 }
 
-// Mock 数据兜底
-function getMockRoutes() {
-  return [
-    {
-      id: '1',
-      title: 'API未配置 (测试数据)',
-      distance: 2140,
-      tags: ['进藏'],
-      season: ['夏', '秋'],
-      status: '开放',
-      cover: 'https://picsum.photos/seed/route1/800/600',
-      routeSequence: [],
-    },
-    {
-      id: '2',
-      title: '川藏南线 G318',
-      distance: 2755,
-      tags: ['极致风光', '高难度'],
-      season: ['春', '夏'],
-      status: '部分封路',
-      cover: 'https://picsum.photos/seed/route2/800/600',
-      routeSequence: ['S001', 'D001', 'D002'],
-    },
-  ];
+function getLastRoutesSource() {
+  return lastRoutesSource;
 }
 
 module.exports = {
   getRoutes,
   getRouteById,
   getRoutePOIs,
+  getLastRoutesSource,
 };
+

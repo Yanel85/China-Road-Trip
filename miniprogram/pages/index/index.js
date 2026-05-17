@@ -1,4 +1,4 @@
-const { getRoutes, getRoutePOIs } = require('../../lib/notion');
+const { getRoutes, getRoutePOIs, getLastRoutesSource } = require('../../lib/notion');
 const { parseCoordinates } = require('../../lib/geo');
 const { getCurrentSeason } = require('../../utils/index');
 const CHECKED_KEY = 'route_checked';
@@ -54,6 +54,13 @@ Page({
   loadData() {
     this.setData({ loading: true });
     return getRoutes().then((routes) => {
+      const source = getLastRoutesSource();
+      if (source === 'local') {
+        this.showToast('网络异常，已展示离线缓存数据');
+      } else if (source === 'none') {
+        this.showToast('暂无可用缓存，请检查网络');
+      }
+
       routes.forEach((r) => { r.id = String(r.id); });
       routes.forEach((r) => { 
         r._shortName = getShortName(r.title);
@@ -65,6 +72,7 @@ Page({
       });
     }).catch((err) => {
       console.error('Failed to load data:', err);
+      this.showToast('数据加载失败，请稍后重试');
       this.setData({ loading: false });
     });
   },
@@ -164,64 +172,76 @@ Page({
     const allMarkers = [];
     let minLat = Infinity, maxLat = -Infinity, minLng = Infinity, maxLng = -Infinity;
 
-    for (let i = 0; i < checkedIds.length; i++) {
-      const routeId = checkedIds[i];
+    const routeTasks = checkedIds.map((routeId, i) => {
       const route = routes.find((r) => String(r.id) === String(routeId));
-      if (!route) continue;
+      if (!route) return Promise.resolve(null);
 
-      try {
-        const pois = await getRoutePOIs(routeId);
-        const routePoiIds = route.routeSequence || [];
-        const routePoisMap = {};
-        pois.forEach((p) => { routePoisMap[p.poiId] = p; });
+      return getRoutePOIs(routeId)
+        .then((pois) => {
+          const routePoiIds = route.routeSequence || [];
+          const routePoisMap = {};
+          pois.forEach((p) => { routePoisMap[p.poiId] = p; });
 
-        const points = routePoiIds
-          .map((poiId) => routePoisMap[poiId])
-          .filter((p) => p && p.coordinates && p.coordinates.includes(','))
-          .map((p) => {
-            const coords = parseCoordinates(p.coordinates);
-            return coords ? { latitude: coords[0], longitude: coords[1] } : null;
-          })
-          .filter(Boolean);
+          const points = routePoiIds
+            .map((poiId) => routePoisMap[poiId])
+            .filter((p) => p && p.coordinates && p.coordinates.includes(','))
+            .map((p) => {
+              const coords = parseCoordinates(p.coordinates);
+              return coords ? { latitude: coords[0], longitude: coords[1] } : null;
+            })
+            .filter(Boolean);
 
-        if (points.length > 1) {
-          allPolylines.push({
+          if (points.length <= 1) return null;
+
+          return {
+            idx: i,
+            route,
             points,
-            color: '#F39C12',
-            width: 3,
-            arrowLine: true,
-          });
-          // 取中点作为 marker 位置
-          const midIdx = Math.floor(points.length / 2);
-          const mid = points[midIdx];
-          allMarkers.push({
-            id: i + 1,
-            latitude: mid.latitude,
-            longitude: mid.longitude,
-            width: 14,
-            height: 20,
-            callout: {
-              content: route._shortName || route.title,
-              color: '#ffffff',
-              fontSize: 11,
-              borderRadius: 4,
-              borderWidth: 0,
-              bgColor: '#F39C12',
-              padding: 4,
-              display: 'ALWAYS',
-            },
-          });
-          points.forEach((pt) => {
-            if (pt.latitude < minLat) minLat = pt.latitude;
-            if (pt.latitude > maxLat) maxLat = pt.latitude;
-            if (pt.longitude < minLng) minLng = pt.longitude;
-            if (pt.longitude > maxLng) maxLng = pt.longitude;
-          });
-        }
-      } catch (err) {
-        console.error(`Failed to load POIs for route ${routeId}:`, err);
-      }
-    }
+          };
+        })
+        .catch((err) => {
+          console.error(`Failed to load POIs for route ${routeId}:`, err);
+          return null;
+        });
+    });
+
+    const results = await Promise.all(routeTasks);
+
+    results.filter(Boolean).forEach(({ idx, route, points }) => {
+      allPolylines.push({
+        points,
+        color: '#F39C12',
+        width: 3,
+        arrowLine: true,
+      });
+
+      const midIdx = Math.floor(points.length / 2);
+      const mid = points[midIdx];
+      allMarkers.push({
+        id: idx + 1,
+        latitude: mid.latitude,
+        longitude: mid.longitude,
+        width: 14,
+        height: 20,
+        callout: {
+          content: route._shortName || route.title,
+          color: '#ffffff',
+          fontSize: 11,
+          borderRadius: 4,
+          borderWidth: 0,
+          bgColor: '#F39C12',
+          padding: 4,
+          display: 'ALWAYS',
+        },
+      });
+
+      points.forEach((pt) => {
+        if (pt.latitude < minLat) minLat = pt.latitude;
+        if (pt.latitude > maxLat) maxLat = pt.latitude;
+        if (pt.longitude < minLng) minLng = pt.longitude;
+        if (pt.longitude > maxLng) maxLng = pt.longitude;
+      });
+    });
 
     const update = { mapPolyline: allPolylines, mapMarkers: allMarkers };
 

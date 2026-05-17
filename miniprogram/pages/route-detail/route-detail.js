@@ -1,4 +1,4 @@
-const { getRouteById, getRoutePOIs } = require('../../lib/notion');
+const { getRouteById, getRoutePOIs, getLastRoutesSource } = require('../../lib/notion');
 const { parseCoordinates } = require('../../lib/geo');
 
 Page({
@@ -32,6 +32,13 @@ Page({
     this.setData({ loading: true });
     try {
       let route = await getRouteById(id);
+      const source = getLastRoutesSource();
+      if (source === 'local') {
+        wx.showToast({ title: '网络异常，已展示离线缓存数据', icon: 'none' });
+      } else if (source === 'none') {
+        wx.showToast({ title: '暂无可用缓存，请检查网络', icon: 'none' });
+      }
+
       let pois = [];
       if (route) {
         pois = await getRoutePOIs(id);
@@ -145,6 +152,7 @@ Page({
       });
     } catch (err) {
       console.error('Failed to load route:', err);
+      wx.showToast({ title: '数据加载失败，请稍后重试', icon: 'none' });
       this.setData({ loading: false });
     }
   },
